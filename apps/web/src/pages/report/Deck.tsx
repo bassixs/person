@@ -1,6 +1,6 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useCallback, useEffect, useRef, useState, type CSSProperties, type PointerEvent as RPointerEvent } from "react";
-import { Avatar } from "./Avatar";
+import { PersonaArt } from "./Avatar";
 import type { Persona } from "./personas";
 
 /**
@@ -113,7 +113,7 @@ export function Deck({ personas, active, onChange }: { personas: Persona[]; acti
               onPointerLeave={isActive ? untilt : undefined}
             >
               <span className="rp-deck__inner">
-                <Avatar look={p.look} className="absolute inset-0 h-full w-full" />
+                <PersonaArt look={p.look} className="absolute inset-0 h-full w-full" />
                 <span className="rp-deck__shade" />
                 <span className="absolute left-4 top-4 font-[Unbounded] text-[11px] font-semibold tracking-[0.1em] text-white/85">
                   {String(i + 1).padStart(2, "0")} / {String(n).padStart(2, "0")}

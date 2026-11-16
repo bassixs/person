@@ -101,3 +101,20 @@ export function Avatar({ look, className }: { look: Look; className?: string }) 
     </svg>
   );
 }
+
+/** Портрет персонажа: сгенерированная картинка, если есть, иначе условная иллюстрация. */
+export function PersonaArt({ look, className, focus = "50% 0%" }: { look: Look; className?: string; focus?: string }) {
+  if (look.image)
+    return (
+      <img
+        src={look.image}
+        alt=""
+        aria-hidden="true"
+        draggable={false}
+        decoding="async"
+        className={className}
+        style={{ objectFit: "cover", objectPosition: focus, background: look.c2 }}
+      />
+    );
+  return <Avatar look={look} className={className} />;
+}

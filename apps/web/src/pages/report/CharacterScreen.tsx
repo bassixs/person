@@ -1,7 +1,7 @@
 import clsx from "clsx";
 import { FlaskConical, Lock, MessagesSquare, Network, Power } from "lucide-react";
 import { useEffect, useState, type CSSProperties } from "react";
-import { Avatar } from "./Avatar";
+import { PersonaArt } from "./Avatar";
 import { SECTION_ICONS, type Persona } from "./personas";
 
 /**
@@ -28,7 +28,7 @@ export function CharacterScreen({ p }: { p: Persona }) {
       {/* Карточка персонажа */}
       <div key={`card-${p.id}`} className="rp-card rp-swap overflow-hidden">
         <div className="relative aspect-[3/3.2] overflow-hidden">
-          <Avatar look={p.look} className="absolute inset-0 h-full w-full" />
+          <PersonaArt look={p.look} focus="50% 12%" className="absolute inset-0 h-full w-full" />
           <span className="absolute left-4 top-4 rp-tag border-white/40 bg-black/25 text-white backdrop-blur">Черновик v1.0</span>
         </div>
         <div className="p-5">

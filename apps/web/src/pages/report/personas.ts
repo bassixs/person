@@ -22,7 +22,7 @@ import fixtures from "../../demo/fixtures.json";
 /*
  * Данные персонажей — настоящие семь легенд из backend (seed_data.py → fixtures.json).
  * Все они — ЧЕРНОВИКИ: ни одна персона не активирована (этап 2). Заполненность считается по реальным полям.
- * Внешность — условная иллюстрация, а не «портрет» (персоны вымышлены).
+ * Внешность — стилизованные 3D-портреты, сгенерированные ИИ (не фото, не реальные люди); без картинки — SVG-заглушка.
  */
 
 type Field = { value: unknown; source_kind: string; certainty: string };
@@ -47,17 +47,21 @@ export interface Look {
   glasses?: boolean;
   icon: LucideIcon;
   role: string;
+  /** Сгенерированный портрет (public/personas). Без него — условная SVG-иллюстрация. */
+  image?: string;
 }
+
+const img = (file: string) => `${import.meta.env.BASE_URL}personas/${file}`;
 
 /** Визуальная «сборка» персонажа — порядок совпадает с seed. */
 const LOOKS: Look[] = [
-  { c1: "#3d6bff", c2: "#1b2f7a", skin: "#e2b493", hair: "short", hairColor: "#3a2a20", beard: true, icon: Fish, role: "Практик" },
-  { c1: "#2fae64", c2: "#0f4d2b", skin: "#efcdb4", hair: "bun", hairColor: "#c9c4bb", icon: Sprout, role: "Хозяйка дачи" },
-  { c1: "#a64dff", c2: "#43176e", skin: "#f0c9ad", hair: "bob", hairColor: "#8a3b22", icon: Cat, role: "Домашний уют" },
-  { c1: "#f2a516", c2: "#7a4a06", skin: "#d4a07e", hair: "cap", hairColor: "#4a3626", beard: true, icon: Tractor, role: "Фермер" },
-  { c1: "#13a8a0", c2: "#08504c", skin: "#e8bf9f", hair: "long", hairColor: "#2b1d16", icon: Mountain, role: "Между городом и деревней" },
-  { c1: "#ff5a1f", c2: "#7a1f04", skin: "#d9a687", hair: "short", hairColor: "#1e1a17", icon: Wrench, role: "Автосервис" },
-  { c1: "#5b5ff0", c2: "#23246b", skin: "#ecc4a6", hair: "curly", hairColor: "#2a2420", glasses: true, icon: BookOpen, role: "Книги и история" },
+  { c1: "#3d6bff", c2: "#1b2f7a", skin: "#e2b493", hair: "short", hairColor: "#3a2a20", beard: true, icon: Fish, role: "Практик", image: img("01-artem.webp") },
+  { c1: "#2fae64", c2: "#0f4d2b", skin: "#efcdb4", hair: "bun", hairColor: "#c9c4bb", icon: Sprout, role: "Хозяйка дачи", image: img("02-lyubov.webp") },
+  { c1: "#a64dff", c2: "#43176e", skin: "#f0c9ad", hair: "bob", hairColor: "#8a3b22", icon: Cat, role: "Домашний уют", image: img("03-galina.webp") },
+  { c1: "#f2a516", c2: "#7a4a06", skin: "#d4a07e", hair: "cap", hairColor: "#4a3626", beard: true, icon: Tractor, role: "Фермер", image: img("04-andrey.webp") },
+  { c1: "#13a8a0", c2: "#08504c", skin: "#e8bf9f", hair: "long", hairColor: "#2b1d16", icon: Mountain, role: "Между городом и деревней", image: img("05-valentina.webp") },
+  { c1: "#ff5a1f", c2: "#7a1f04", skin: "#d9a687", hair: "short", hairColor: "#1e1a17", icon: Wrench, role: "Автосервис", image: img("06-igor.webp") },
+  { c1: "#5b5ff0", c2: "#23246b", skin: "#ecc4a6", hair: "curly", hairColor: "#2a2420", glasses: true, icon: BookOpen, role: "Книги и история", image: img("07-vadim.webp") },
 ];
 
 export const SECTION_ICONS: Record<string, LucideIcon> = {
