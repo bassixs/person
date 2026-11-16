@@ -1,6 +1,6 @@
 import clsx from "clsx";
 import * as DM from "@radix-ui/react-dropdown-menu";
-import { Bell, LogOut, Menu, Search, Settings, X } from "lucide-react";
+import { Bell, Info, LogOut, Menu, Search, Settings, X } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { IS_DEMO } from "../api/client";
@@ -90,6 +90,12 @@ function UserMenu() {
             className="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-fg-soft outline-none data-[highlighted]:bg-elevated"
           >
             <Settings className="h-4 w-4" /> Настройки и система
+          </DM.Item>
+          <DM.Item
+            onSelect={() => nav("/about")}
+            className="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-fg-soft outline-none data-[highlighted]:bg-elevated"
+          >
+            <Info className="h-4 w-4" /> О проекте
           </DM.Item>
           <DM.Item
             onSelect={async () => {

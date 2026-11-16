@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { Navigate, useLocation, useNavigate } from "react-router-dom";
+import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { ApiError, IS_DEMO } from "../api/client";
 import { DemoLogin } from "../demo/DemoUi";
 import { Ambient, useAmbient } from "../components/Ambient";
@@ -92,6 +92,11 @@ export function LoginPage() {
           )}
           <p className="mt-6 text-center text-xs text-muted">
             Учётные записи создаёт администратор. Персоны — вымышленные внутренние модели, не реальные люди.
+          </p>
+          <p className="mt-3 text-center text-xs">
+            <Link to="/about" className="text-fg-soft underline decoration-line-strong underline-offset-4 hover:text-accent">
+              О проекте
+            </Link>
           </p>
         </div>
       </main>
