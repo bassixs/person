@@ -1,0 +1,56 @@
+# Локальный полный стек: web (nginx + SPA) → api (FastAPI) → postgres; worker → redis.
+# Запуск: cp .env.example .env && docker compose up --build
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: lichnosti
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-lichnosti}
+      POSTGRES_DB: lichnosti
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lichnosti"]
+      interval: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      retries: 10
+
+  api:
+    build: { context: ., dockerfile: infra/docker/api.Dockerfile }
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+psycopg://lichnosti:${POSTGRES_PASSWORD:-lichnosti}@postgres:5432/lichnosti
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request;urllib.request.urlopen('http://localhost:8000/api/v1/ready')"]
+      interval: 10s
+      retries: 10
+    ports: ["8000:8000"]
+
+  worker:
+    build: { context: ., dockerfile: infra/docker/api.Dockerfile }
+    command: celery -A worker.celery_app worker --loglevel=info
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+psycopg://lichnosti:${POSTGRES_PASSWORD:-lichnosti}@postgres:5432/lichnosti
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      redis: { condition: service_healthy }
+      api: { condition: service_healthy }
+
+  web:
+    build: { context: ., dockerfile: infra/docker/web.Dockerfile }
+    depends_on:
+      api: { condition: service_healthy }
+    ports: ["8080:80"]
+
+volumes:
+  pgdata:

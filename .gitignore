@@ -1,0 +1,23 @@
+# секреты и локальные данные
+.env
+.env.*
+!.env.example
+.data/
+storage/
+
+# python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# node
+node_modules/
+dist/
+playwright-report/
+test-results/
+*.tsbuildinfo
+
+.DS_Store
