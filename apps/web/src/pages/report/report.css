@@ -1,0 +1,486 @@
+/*
+ * Отчёт-сайт «Личности» (/about). Собственная дизайн-система, без внешних референсов (E-020).
+ * Бумага + чернила, у каждой персоны — свой цвет, как у игрового персонажа.
+ * Стили ограничены классом .rp и не влияют на рабочий интерфейс.
+ * Важно: правила здесь вне слоёв Tailwind — не задавать display у классов, которые прячутся утилитами.
+ */
+
+.rp {
+  --paper: #f1efe8;
+  --paper-2: #e6e3d9;
+  --card: #fbfaf6;
+  --ink: #141414;
+  --ink-2: #3b3a36;
+  --muted: #74716a;
+  --line: rgba(20, 20, 20, 0.12);
+  --line-strong: rgba(20, 20, 20, 0.28);
+  --signal: #ff5a1f;
+  --done: #1d9a57;
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --display: "Unbounded", "Manrope", sans-serif;
+
+  font-family: "Manrope", system-ui, sans-serif;
+  background: var(--paper);
+  color: var(--ink);
+  overflow-x: clip;
+  -webkit-font-smoothing: antialiased;
+}
+html:has(.rp) {
+  background: #f1efe8;
+  scroll-behavior: smooth;
+}
+.rp ::selection {
+  background: var(--ink);
+  color: var(--paper);
+}
+.rp :focus-visible {
+  outline: 2px solid var(--signal);
+  outline-offset: 3px;
+  border-radius: 10px;
+}
+
+/* ---------- Типографика ---------- */
+
+.rp-display {
+  font-family: var(--display);
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  line-height: 0.95;
+  text-wrap: balance;
+}
+.rp-h1 {
+  font-size: clamp(36px, 6vw, 92px);
+}
+.rp-h2 {
+  font-size: clamp(30px, 4.4vw, 64px);
+}
+.rp-h3 {
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: clamp(18px, 1.5vw, 22px);
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+.rp-kicker {
+  font-family: var(--display);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.rp-lead {
+  font-size: clamp(17px, 1.35vw, 20px);
+  line-height: 1.5;
+  color: var(--ink-2);
+  text-wrap: pretty;
+}
+.rp-small {
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--muted);
+}
+.rp-mark {
+  background: linear-gradient(transparent 62%, color-mix(in srgb, var(--signal) 35%, transparent) 62%);
+}
+
+/* ---------- Каркас ---------- */
+
+.rp-wrap {
+  width: 100%;
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 0 clamp(16px, 3vw, 40px);
+}
+.rp-section {
+  position: relative;
+  padding: clamp(72px, 9vw, 136px) 0;
+}
+.rp-night {
+  background: #121212;
+  color: #f1efe8;
+  --ink: #f1efe8;
+  --ink-2: #d4d1c7;
+  --muted: #9a978e;
+  --line: rgba(241, 239, 232, 0.12);
+  --line-strong: rgba(241, 239, 232, 0.3);
+  --card: #1c1c1b;
+}
+.rp-card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 24px;
+}
+
+/* ---------- Кнопки и метки ---------- */
+
+.rp-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  height: 52px;
+  padding: 0 22px;
+  border-radius: 16px;
+  background: var(--ink);
+  color: var(--paper);
+  font-family: var(--display);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  transition: transform 0.25s var(--ease), background-color 0.25s var(--ease);
+}
+.rp-night .rp-btn {
+  background: #f1efe8;
+  color: #121212;
+}
+.rp-btn:hover {
+  transform: translateY(-2px);
+}
+.rp-btn:active {
+  transform: translateY(0) scale(0.98);
+}
+.rp-btn--ghost {
+  background: transparent;
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1.5px var(--line-strong);
+}
+.rp-night .rp-btn--ghost {
+  background: transparent;
+  color: var(--ink);
+}
+.rp-btn--icon {
+  width: 52px;
+  padding: 0;
+  justify-content: center;
+}
+.rp-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 26px;
+  padding: 0 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  border: 1px solid var(--line-strong);
+  color: var(--ink-2);
+}
+.rp-tag--done {
+  background: var(--done);
+  border-color: var(--done);
+  color: #fff;
+}
+.rp-tag--now {
+  background: var(--signal);
+  border-color: var(--signal);
+  color: #fff;
+}
+
+/* ---------- Навигация ---------- */
+
+.rp-nav {
+  position: fixed;
+  inset: 14px 14px auto 14px;
+  z-index: 50;
+  pointer-events: none;
+}
+.rp-nav__bar {
+  pointer-events: auto;
+  margin: 0 auto;
+  max-width: 1320px;
+  height: 60px;
+  padding: 0 8px 0 18px;
+  border-radius: 20px;
+  background: color-mix(in srgb, var(--paper) 78%, transparent);
+  backdrop-filter: blur(14px) saturate(1.4);
+  border: 1px solid var(--line);
+}
+.rp-nav__bar .rp-btn {
+  height: 44px;
+  border-radius: 13px;
+}
+.rp-logo {
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: 15px;
+  letter-spacing: 0.04em;
+}
+
+/* ---------- Веер персонажей ---------- */
+
+.rp-deck {
+  --cw: clamp(190px, 21vw, 300px);
+  --step: calc(var(--cw) * 0.6);
+  position: relative;
+  height: calc(var(--cw) * 1.45 + 90px);
+  touch-action: pan-y;
+  user-select: none;
+  cursor: grab;
+}
+.rp-deck:active {
+  cursor: grabbing;
+}
+.rp-deck__card {
+  --abs: 0;
+  --off: 0;
+  position: absolute;
+  left: 50%;
+  top: 10px;
+  width: var(--cw);
+  aspect-ratio: 3 / 4.3;
+  margin-left: calc(var(--cw) / -2);
+  border-radius: 30px;
+  overflow: hidden;
+  transform-origin: 50% 120%;
+  transform: translateX(calc(var(--off) * var(--step))) translateY(calc(var(--abs) * var(--abs) * 7px + var(--abs) * 16px))
+    rotate(calc(var(--off) * 6.5deg)) scale(calc(1 - var(--abs) * 0.055));
+  transition:
+    transform 0.75s var(--ease),
+    opacity 0.5s var(--ease),
+    box-shadow 0.5s var(--ease);
+  box-shadow: 0 30px 60px -30px rgba(20, 20, 20, 0.45);
+  will-change: transform;
+}
+.rp-deck[data-dragging="true"] .rp-deck__card {
+  transition: none;
+}
+.rp-deck__card[data-active="true"] {
+  box-shadow:
+    0 0 0 3px var(--paper),
+    0 0 0 6px var(--pc),
+    0 40px 80px -30px color-mix(in srgb, var(--pc) 70%, black);
+}
+.rp-deck__card[data-active="true"] .rp-deck__inner {
+  transform: perspective(900px) rotateX(var(--ry, 0deg)) rotateY(var(--rx, 0deg));
+}
+.rp-deck__inner {
+  position: absolute;
+  inset: 0;
+  transition: transform 0.4s var(--ease);
+}
+.rp-deck__shade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 45%, rgba(10, 10, 10, 0.72));
+  transition: opacity 0.6s var(--ease);
+}
+.rp-deck__card:not([data-active="true"]) .rp-deck__dim {
+  opacity: 1;
+}
+.rp-deck__dim {
+  position: absolute;
+  inset: 0;
+  background: rgba(241, 239, 232, 0.18);
+  opacity: 0;
+  transition: opacity 0.6s var(--ease);
+  pointer-events: none;
+}
+.rp-deck__name {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: clamp(17px, 1.6vw, 24px);
+  letter-spacing: -0.03em;
+  line-height: 1;
+  color: #fff;
+}
+
+/* Появление веера при загрузке */
+.rp-deck-in .rp-deck__card {
+  animation: rp-deal 1.1s var(--ease) backwards; /* не both: иначе анимация перекроет transition веера */
+  animation-delay: calc(var(--n) * 70ms + 200ms);
+}
+@keyframes rp-deal {
+  from {
+    opacity: 0;
+    transform: translateY(120px) rotate(0deg) scale(0.8);
+  }
+}
+
+/* ---------- Экран персонажа ---------- */
+
+.rp-seg {
+  display: grid;
+  grid-template-columns: repeat(var(--total), 1fr);
+  gap: 3px;
+}
+.rp-seg span {
+  height: 10px;
+  border-radius: 3px;
+  background: var(--line);
+  transition: background-color 0.5s var(--ease);
+  transition-delay: calc(var(--i) * 18ms);
+}
+.rp-seg span[data-on="true"] {
+  background: var(--pc);
+}
+
+.rp-slot {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  min-height: 118px;
+  border-radius: 18px;
+  border: 1.5px dashed var(--line-strong);
+  background: transparent;
+  text-align: left;
+  transition:
+    border-color 0.3s var(--ease),
+    background-color 0.3s var(--ease),
+    transform 0.3s var(--ease);
+}
+.rp-slot:hover {
+  transform: translateY(-3px);
+}
+.rp-slot[data-filled="true"] {
+  border-style: solid;
+  border-color: color-mix(in srgb, var(--pc) 45%, transparent);
+  background: color-mix(in srgb, var(--pc) 9%, var(--card));
+}
+.rp-slot[aria-pressed="true"] {
+  border-color: var(--pc);
+  border-style: solid;
+  background: color-mix(in srgb, var(--pc) 16%, var(--card));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--pc) 22%, transparent);
+}
+.rp-pip {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  border: 1.5px solid var(--line-strong);
+}
+.rp-pip[data-on="true"] {
+  background: var(--pc);
+  border-color: var(--pc);
+}
+.rp-locked {
+  background: repeating-linear-gradient(135deg, transparent 0 10px, var(--line) 10px 11px);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+}
+
+.rp-swap {
+  animation: rp-swap 0.6s var(--ease) both;
+}
+@keyframes rp-swap {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}
+
+/* ---------- Появление при прокрутке ---------- */
+
+.rp-reveal {
+  opacity: 0;
+  transform: translateY(36px);
+  transition:
+    opacity 0.9s var(--ease),
+    transform 0.9s var(--ease);
+}
+.rp-reveal[data-shown="true"] {
+  opacity: 1;
+  transform: none;
+}
+
+/* Путь персонажа — уровни */
+.rp-path-line {
+  transform-origin: left;
+  transform: scaleX(0);
+  transition: transform 1.6s var(--ease);
+}
+[data-shown="true"] .rp-path-line {
+  transform: scaleX(var(--p, 1));
+}
+
+/* Чат */
+.rp-chat .rp-msg {
+  opacity: 0;
+  transform: translateY(12px) scale(0.98);
+}
+.rp-chat[data-shown="true"] .rp-msg {
+  animation: rp-msg-in 0.7s var(--ease) forwards;
+  animation-delay: var(--d);
+}
+/* явный конечный кадр: базовая прозрачность сообщения — 0 */
+@keyframes rp-msg-in {
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Предложение ИИ — зачёркивание по кругу */
+.rp-strike {
+  background-image: linear-gradient(var(--signal), var(--signal));
+  background-repeat: no-repeat;
+  background-position: 0 55%;
+  background-size: 0 3px;
+  animation: rp-strike 6s var(--ease) infinite;
+}
+@keyframes rp-strike {
+  0%,
+  15% {
+    background-size: 0 3px;
+  }
+  30%,
+  90% {
+    background-size: 100% 3px;
+    opacity: 0.55;
+  }
+  100% {
+    background-size: 0 3px;
+  }
+}
+.rp-appear {
+  animation: rp-appear 6s var(--ease) infinite;
+}
+@keyframes rp-appear {
+  0%,
+  25% {
+    clip-path: inset(0 100% 0 0);
+  }
+  40%,
+  90% {
+    clip-path: inset(0 0 0 0);
+  }
+  100% {
+    clip-path: inset(0 100% 0 0);
+  }
+}
+.rp-lab .rp-lab__st {
+  opacity: 0;
+  transform: scale(0.6);
+  transition:
+    opacity 0.4s var(--ease),
+    transform 0.4s var(--ease);
+  transition-delay: calc(var(--i) * 160ms + 200ms);
+}
+.rp-lab[data-shown="true"] .rp-lab__st {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rp *,
+  .rp *::before,
+  .rp *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+  .rp-reveal,
+  .rp-chat .rp-msg,
+  .rp-lab .rp-lab__st {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .rp-path-line {
+    transform: scaleX(var(--p, 1)) !important;
+  }
+  .rp-appear {
+    clip-path: none !important;
+  }
+}
