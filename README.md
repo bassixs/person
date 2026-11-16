@@ -9,6 +9,9 @@
 Продуктовый контекст: [`docs/PROJECT_CONTEXT.md`](docs/PROJECT_CONTEXT.md) · ТЗ: [`LICHNOSTI_Claude_Code_TZ.md`](LICHNOSTI_Claude_Code_TZ.md) ·
 решения реализации: [`docs/DECISIONS.md`](docs/DECISIONS.md) · правила разработки: [`CLAUDE.md`](CLAUDE.md).
 
+**Демо-версия (только интерфейс):** https://bassixs.github.io/person/ — данные хранятся лишь в вашем браузере,
+сервера и общей базы нет. Это витрина интерфейса, а не рабочая система (см. `docs/DECISIONS.md`, E-017).
+
 ## Состояние: итерация 1 (фундамент)
 
 | Что | Статус |

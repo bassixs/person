@@ -5,6 +5,8 @@ import react from "@vitejs/plugin-react";
 const apiTarget = process.env.VITE_API_PROXY ?? "http://127.0.0.1:8000";
 
 export default defineConfig({
+  // Для GitHub Pages: VITE_BASE=/person/
+  base: process.env.VITE_BASE ?? "/",
   plugins: [react()],
   server: {
     port: 5173,

@@ -46,4 +46,7 @@ export const router = createBrowserRouter([
       },
     ],
   },
-]);
+], {
+  // На GitHub Pages приложение живёт в подкаталоге /<repo>/
+  basename: import.meta.env.BASE_URL === "/" ? undefined : import.meta.env.BASE_URL.replace(/\/$/, ""),
+});

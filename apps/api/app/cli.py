@@ -15,10 +15,9 @@ from sqlalchemy import func, select
 from app.db import session_factory
 from app.deps import Principal
 from app.models import Persona, User, UserRole
-from app.passport import Passport, PassportField, empty_passport
 from app.rbac import Perm, permissions_for
 from app.security import hash_password
-from app.seed_data import SEED_PERSONAS
+from app.seed_data import SEED_PERSONAS, seed_passport
 from app.services.personas import create_persona
 
 
@@ -37,6 +36,20 @@ def cmd_create_user(a: argparse.Namespace) -> int:
         db.add(u)
         db.commit()
         print(f"Создан пользователь {u.email} с ролями {roles}")
+    return 0
+
+
+def cmd_export_demo(a: argparse.Namespace) -> int:
+    """Экспорт схемы паспорта и семи легенд для демо-сборки фронтенда (GitHub Pages)."""
+    import json
+    import pathlib
+
+    from app.seed_data import demo_fixtures
+
+    out = pathlib.Path(a.out)
+    text = json.dumps(demo_fixtures(), ensure_ascii=False, indent=1)
+    out.write_text(text + "\n", encoding="utf-8")
+    print(f"Записано: {out}")
     return 0
 
 
@@ -62,24 +75,7 @@ def cmd_seed(a: argparse.Namespace) -> int:
             if exists:
                 print(f"  пропуск (уже есть): {item['name']}")
                 continue
-            passport = empty_passport()
-            passport.sections["legend"].fields["full_name"] = PassportField(
-                value=item["name"], source_kind="original_legend", certainty="defined"
-            )
-            for skey, fields in item["fields"].items():
-                for fkey, data in fields.items():
-                    passport.sections[skey].fields[fkey] = PassportField(**data)
-            passport.sections["limits"].fields["known_unknowns"] = PassportField(
-                value=item["unknowns"], source_kind="original_legend", certainty="defined"
-            )
-            if item.get("restrictions"):
-                passport.sections["limits"].fields["editor_restrictions"] = PassportField(
-                    value=item["restrictions"], source_kind="original_legend", certainty="defined"
-                )
-            passport.sections["limits"].narrative = (
-                "Черновик создан из краткой исходной легенды. Всё, чего нет в легенде, "
-                "остаётся неизвестным до интервью и решения редактора."
-            )
+            passport = seed_passport(item)
             create_persona(
                 db,
                 p,
@@ -88,7 +84,7 @@ def cmd_seed(a: argparse.Namespace) -> int:
                 mode="legend",
                 legend_text=item["legend"],
                 is_seed=True,
-                initial_passport=Passport.model_validate(passport.model_dump()),
+                initial_passport=passport,
             )
             created += 1
             print(f"  создан черновик: {item['name']}")
@@ -108,8 +104,15 @@ def main(argv: list[str] | None = None) -> int:
     sp = sub.add_parser("seed-personas")
     sp.add_argument("--as", dest="actor", required=True)
     sp.add_argument("--confirm", action="store_true")
+    ed = sub.add_parser("export-demo")
+    ed.add_argument("--out", required=True)
     a = ap.parse_args(argv)
-    return {"create-user": cmd_create_user, "seed-personas": cmd_seed}[a.cmd](a)
+    commands = {
+        "create-user": cmd_create_user,
+        "seed-personas": cmd_seed,
+        "export-demo": cmd_export_demo,
+    }
+    return commands[a.cmd](a)
 
 
 if __name__ == "__main__":

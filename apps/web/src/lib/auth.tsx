@@ -1,6 +1,6 @@
 import { createContext, useContext, type ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ApiError, get, post, setCsrfToken } from "../api/client";
+import { ApiError, IS_DEMO, get, post, setCsrfToken } from "../api/client";
 import type { Me } from "../api/types";
 
 interface AuthState {
@@ -36,7 +36,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     loading: isLoading,
     can: (perm) => !!data?.permissions.includes(perm),
     login: async (email, password) => {
-      const me = await post<Me>("/auth/login", { email, password });
+      // В демо-сборке вход — выбор демо-роли без пароля (данные только в браузере).
+      const me = IS_DEMO
+        ? await post<Me>("/auth/demo-login", { email })
+        : await post<Me>("/auth/login", { email, password });
       setCsrfToken(me.csrf_token);
       qc.setQueryData(["me"], me);
     },

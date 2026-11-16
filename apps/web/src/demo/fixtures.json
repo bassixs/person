@@ -1,0 +1,2247 @@
+{
+ "schema": {
+  "schema_version": 1,
+  "source_kinds": {
+   "original_legend": "Исходная легенда",
+   "editor": "Редактор",
+   "ai_suggestion": "Предложение ИИ"
+  },
+  "certainties": {
+   "defined": "Определено",
+   "hypothesis": "Гипотеза",
+   "unknown": "Неизвестно"
+  },
+  "sections": [
+   {
+    "key": "legend",
+    "title": "Легенда и биография",
+    "description": "Общее описание жизненной ситуации вымышленной аналитической персоны.",
+    "fields": [
+     {
+      "key": "full_name",
+      "label": "Имя",
+      "type": "text",
+      "hint": "Вымышленное имя персоны"
+     },
+     {
+      "key": "age_range",
+      "label": "Возрастной диапазон",
+      "type": "text",
+      "hint": "Например: 45–50 лет"
+     },
+     {
+      "key": "occupation",
+      "label": "Род занятий",
+      "type": "text",
+      "hint": "Если неизвестно — оставьте «неизвестно»"
+     },
+     {
+      "key": "geography",
+      "label": "География",
+      "type": "text",
+      "hint": "Тип населённого пункта / регион"
+     },
+     {
+      "key": "life_situation",
+      "label": "Жизненная ситуация",
+      "type": "longtext",
+      "hint": "Коротко о текущем положении"
+     }
+    ]
+   },
+   {
+    "key": "family",
+    "title": "Семья и окружение",
+    "description": "Как устроена ежедневная жизнь и ближний круг.",
+    "fields": [
+     {
+      "key": "family_status",
+      "label": "Семейное положение",
+      "type": "text",
+      "hint": ""
+     },
+     {
+      "key": "close_people",
+      "label": "Близкие люди",
+      "type": "tags",
+      "hint": "Роли, без реальных персональных данных"
+     },
+     {
+      "key": "household",
+      "label": "Бытовой контекст",
+      "type": "longtext",
+      "hint": "Жильё, быт, распорядок"
+     }
+    ]
+   },
+   {
+    "key": "experience",
+    "title": "Жизненный опыт",
+    "description": "Предыдущий опыт и его влияние на взгляд на события.",
+    "fields": [
+     {
+      "key": "life_stages",
+      "label": "Этапы жизни",
+      "type": "longtext",
+      "hint": ""
+     },
+     {
+      "key": "work_history",
+      "label": "Трудовой опыт",
+      "type": "longtext",
+      "hint": ""
+     },
+     {
+      "key": "hobbies",
+      "label": "Увлечения",
+      "type": "tags",
+      "hint": ""
+     }
+    ]
+   },
+   {
+    "key": "character",
+    "title": "Характер",
+    "description": "Проявление устойчивых особенностей в разных ситуациях.",
+    "fields": [
+     {
+      "key": "traits",
+      "label": "Черты",
+      "type": "tags",
+      "hint": ""
+     },
+     {
+      "key": "emotionality",
+      "label": "Эмоциональность",
+      "type": "text",
+      "hint": ""
+     },
+     {
+      "key": "habits",
+      "label": "Привычки",
+      "type": "tags",
+      "hint": ""
+     }
+    ]
+   },
+   {
+    "key": "worldview",
+    "title": "Мировосприятие",
+    "description": "Как персона интерпретирует события. Не политическая инструкция.",
+    "fields": [
+     {
+      "key": "values",
+      "label": "Ценности",
+      "type": "tags",
+      "hint": ""
+     },
+     {
+      "key": "priorities",
+      "label": "Приоритеты",
+      "type": "tags",
+      "hint": ""
+     },
+     {
+      "key": "reasoning_style",
+      "label": "Способ рассуждения",
+      "type": "longtext",
+      "hint": ""
+     }
+    ]
+   },
+   {
+    "key": "competence",
+    "title": "Компетенции и границы знаний",
+    "description": "Что знает, чего не знает и где склонна ошибаться.",
+    "fields": [
+     {
+      "key": "knowledge_areas",
+      "label": "Области знаний",
+      "type": "tags",
+      "hint": ""
+     },
+     {
+      "key": "confidence",
+      "label": "Степень уверенности",
+      "type": "text",
+      "hint": ""
+     },
+     {
+      "key": "knowledge_limits",
+      "label": "Границы знаний",
+      "type": "longtext",
+      "hint": "Чего персона не знает"
+     },
+     {
+      "key": "typical_mistakes",
+      "label": "Типичные ошибки",
+      "type": "longtext",
+      "hint": ""
+     }
+    ]
+   },
+   {
+    "key": "speech",
+    "title": "Речевой почерк",
+    "description": "Языковые особенности для внутреннего анализа, не для имитации реального свидетеля.",
+    "fields": [
+     {
+      "key": "phrase_length",
+      "label": "Длина фраз",
+      "type": "text",
+      "hint": ""
+     },
+     {
+      "key": "vocabulary",
+      "label": "Лексика",
+      "type": "longtext",
+      "hint": ""
+     },
+     {
+      "key": "formality",
+      "label": "Формальность",
+      "type": "text",
+      "hint": ""
+     },
+     {
+      "key": "humor",
+      "label": "Юмор",
+      "type": "text",
+      "hint": ""
+     }
+    ]
+   },
+   {
+    "key": "behavior",
+    "title": "Поведенческие реакции",
+    "description": "Реакции на неполноту сведений, конфликт и новые факты.",
+    "fields": [
+     {
+      "key": "on_incomplete_info",
+      "label": "При неполных сведениях",
+      "type": "longtext",
+      "hint": ""
+     },
+     {
+      "key": "on_conflict",
+      "label": "В конфликте",
+      "type": "longtext",
+      "hint": ""
+     },
+     {
+      "key": "on_new_facts",
+      "label": "На новые факты",
+      "type": "longtext",
+      "hint": ""
+     }
+    ]
+   },
+   {
+    "key": "limits",
+    "title": "Ограничения и происхождение",
+    "description": "Где ИИ обязан обозначить пробел, а не додумать факт.",
+    "fields": [
+     {
+      "key": "known_unknowns",
+      "label": "Известные неизвестные",
+      "type": "tags",
+      "hint": ""
+     },
+     {
+      "key": "editor_restrictions",
+      "label": "Редакторские ограничения",
+      "type": "longtext",
+      "hint": ""
+     },
+     {
+      "key": "provenance_notes",
+      "label": "Заметки о происхождении",
+      "type": "longtext",
+      "hint": ""
+     }
+    ]
+   }
+  ]
+ },
+ "seed": [
+  {
+   "name": "Артем Вишнев",
+   "short_context": "Гараж, рыбалка, футбол, автомобили; практический взгляд на быт.",
+   "legend": "Мужчина, гражданский брак. Гараж, рыбалка, футбол, автомобили; практический взгляд на бытовые вопросы. В первоначальном описании также имелись общественно-политические предпочтения (содержание в проект не переносится).",
+   "passport": {
+    "schema_version": 1,
+    "sections": {
+     "legend": {
+      "fields": {
+       "full_name": {
+        "value": "Артем Вишнев",
+        "source_kind": "original_legend",
+        "certainty": "defined",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "age_range": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "occupation": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "geography": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "life_situation": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       }
+      },
+      "narrative": ""
+     },
+     "family": {
+      "fields": {
+       "family_status": {
+        "value": "Гражданский брак",
+        "source_kind": "original_legend",
+        "certainty": "defined",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "close_people": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "household": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       }
+      },
+      "narrative": ""
+     },
+     "experience": {
+      "fields": {
+       "life_stages": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "work_history": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "hobbies": {
+        "value": [
+         "гараж",
+         "рыбалка",
+         "футбол",
+         "автомобили"
+        ],
+        "source_kind": "original_legend",
+        "certainty": "defined",
+        "editor_approved": false,
+        "dependencies": []
+       }
+      },
+      "narrative": ""
+     },
+     "character": {
+      "fields": {
+       "traits": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "emotionality": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "habits": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       }
+      },
+      "narrative": ""
+     },
+     "worldview": {
+      "fields": {
+       "values": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "priorities": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "reasoning_style": {
+        "value": "Практический взгляд на бытовые вопросы",
+        "source_kind": "original_legend",
+        "certainty": "defined",
+        "editor_approved": false,
+        "dependencies": []
+       }
+      },
+      "narrative": ""
+     },
+     "competence": {
+      "fields": {
+       "knowledge_areas": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "confidence": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "knowledge_limits": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "typical_mistakes": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       }
+      },
+      "narrative": ""
+     },
+     "speech": {
+      "fields": {
+       "phrase_length": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "vocabulary": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "formality": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "humor": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       }
+      },
+      "narrative": ""
+     },
+     "behavior": {
+      "fields": {
+       "on_incomplete_info": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "on_conflict": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "on_new_facts": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       }
+      },
+      "narrative": ""
+     },
+     "limits": {
+      "fields": {
+       "known_unknowns": {
+        "value": [
+         "точный возраст",
+         "профессия",
+         "место работы",
+         "уровень технических знаний",
+         "семейная история",
+         "точные формулировки взглядов"
+        ],
+        "source_kind": "original_legend",
+        "certainty": "defined",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "editor_restrictions": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "provenance_notes": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       }
+      },
+      "narrative": "Черновик создан из краткой исходной легенды. Всё, чего нет в легенде, остаётся неизвестным до интервью и решения редактора."
+     }
+    }
+   }
+  },
+  {
+   "name": "Любовь Богданова",
+   "short_context": "Около 60–65 лет, пенсия, дача и теплица, телесериалы.",
+   "legend": "Женщина приблизительно 60–65 лет; супруг Коля, около 40 лет в браке; пенсия, дача, теплица, телесериалы, телевидение, Надежда Кадышева.",
+   "passport": {
+    "schema_version": 1,
+    "sections": {
+     "legend": {
+      "fields": {
+       "full_name": {
+        "value": "Любовь Богданова",
+        "source_kind": "original_legend",
+        "certainty": "defined",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "age_range": {
+        "value": "около 60–65 лет",
+        "source_kind": "original_legend",
+        "certainty": "defined",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "occupation": {
+        "value": "На пенсии",
+        "source_kind": "original_legend",
+        "certainty": "defined",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "geography": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "life_situation": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       }
+      },
+      "narrative": ""
+     },
+     "family": {
+      "fields": {
+       "family_status": {
+        "value": "Замужем, около 40 лет в браке",
+        "source_kind": "original_legend",
+        "certainty": "defined",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "close_people": {
+        "value": [
+         "супруг Коля"
+        ],
+        "source_kind": "original_legend",
+        "certainty": "defined",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "household": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       }
+      },
+      "narrative": ""
+     },
+     "experience": {
+      "fields": {
+       "life_stages": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "work_history": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "hobbies": {
+        "value": [
+         "дача",
+         "теплица",
+         "телесериалы",
+         "телевидение",
+         "песни Надежды Кадышевой"
+        ],
+        "source_kind": "original_legend",
+        "certainty": "defined",
+        "editor_approved": false,
+        "dependencies": []
+       }
+      },
+      "narrative": ""
+     },
+     "character": {
+      "fields": {
+       "traits": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "emotionality": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "habits": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       }
+      },
+      "narrative": ""
+     },
+     "worldview": {
+      "fields": {
+       "values": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "priorities": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "reasoning_style": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       }
+      },
+      "narrative": ""
+     },
+     "competence": {
+      "fields": {
+       "knowledge_areas": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "confidence": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "knowledge_limits": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "typical_mistakes": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       }
+      },
+      "narrative": ""
+     },
+     "speech": {
+      "fields": {
+       "phrase_length": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "vocabulary": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "formality": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "humor": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       }
+      },
+      "narrative": ""
+     },
+     "behavior": {
+      "fields": {
+       "on_incomplete_info": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "on_conflict": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "on_new_facts": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       }
+      },
+      "narrative": ""
+     },
+     "limits": {
+      "fields": {
+       "known_unknowns": {
+        "value": [
+         "конкретный возраст",
+         "адрес",
+         "профессия до пенсии",
+         "дети и внуки",
+         "образование"
+        ],
+        "source_kind": "original_legend",
+        "certainty": "defined",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "editor_restrictions": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "provenance_notes": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       }
+      },
+      "narrative": "Черновик создан из краткой исходной легенды. Всё, чего нет в легенде, остаётся неизвестным до интервью и решения редактора."
+     }
+    }
+   }
+  },
+  {
+   "name": "Галина Воронова",
+   "short_context": "Около 52 лет; кошки, цветы, рецепты.",
+   "legend": "Около 52 лет; любит кошек, цветы и рецепты.",
+   "passport": {
+    "schema_version": 1,
+    "sections": {
+     "legend": {
+      "fields": {
+       "full_name": {
+        "value": "Галина Воронова",
+        "source_kind": "original_legend",
+        "certainty": "defined",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "age_range": {
+        "value": "около 52 лет",
+        "source_kind": "original_legend",
+        "certainty": "defined",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "occupation": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "geography": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "life_situation": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       }
+      },
+      "narrative": ""
+     },
+     "family": {
+      "fields": {
+       "family_status": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "close_people": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "household": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       }
+      },
+      "narrative": ""
+     },
+     "experience": {
+      "fields": {
+       "life_stages": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "work_history": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "hobbies": {
+        "value": [
+         "кошки",
+         "цветы",
+         "рецепты"
+        ],
+        "source_kind": "original_legend",
+        "certainty": "defined",
+        "editor_approved": false,
+        "dependencies": []
+       }
+      },
+      "narrative": ""
+     },
+     "character": {
+      "fields": {
+       "traits": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "emotionality": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "habits": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       }
+      },
+      "narrative": ""
+     },
+     "worldview": {
+      "fields": {
+       "values": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "priorities": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "reasoning_style": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       }
+      },
+      "narrative": ""
+     },
+     "competence": {
+      "fields": {
+       "knowledge_areas": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "confidence": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "knowledge_limits": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "typical_mistakes": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       }
+      },
+      "narrative": ""
+     },
+     "speech": {
+      "fields": {
+       "phrase_length": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "vocabulary": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "formality": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "humor": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       }
+      },
+      "narrative": ""
+     },
+     "behavior": {
+      "fields": {
+       "on_incomplete_info": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "on_conflict": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "on_new_facts": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       }
+      },
+      "narrative": ""
+     },
+     "limits": {
+      "fields": {
+       "known_unknowns": {
+        "value": [
+         "профессия",
+         "семья",
+         "регион проживания",
+         "жизненные обстоятельства"
+        ],
+        "source_kind": "original_legend",
+        "certainty": "defined",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "editor_restrictions": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "provenance_notes": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       }
+      },
+      "narrative": "Черновик создан из краткой исходной легенды. Всё, чего нет в легенде, остаётся неизвестным до интервью и решения редактора."
+     }
+    }
+   }
+  },
+  {
+   "name": "Андрей Бочаров",
+   "short_context": "Около 46 лет, фермер, спокойный «обычный» человек.",
+   "legend": "Около 46 лет; фермер, спокойный «обычный» человек.",
+   "passport": {
+    "schema_version": 1,
+    "sections": {
+     "legend": {
+      "fields": {
+       "full_name": {
+        "value": "Андрей Бочаров",
+        "source_kind": "original_legend",
+        "certainty": "defined",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "age_range": {
+        "value": "около 46 лет",
+        "source_kind": "original_legend",
+        "certainty": "defined",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "occupation": {
+        "value": "Фермер",
+        "source_kind": "original_legend",
+        "certainty": "defined",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "geography": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "life_situation": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       }
+      },
+      "narrative": ""
+     },
+     "family": {
+      "fields": {
+       "family_status": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "close_people": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "household": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       }
+      },
+      "narrative": ""
+     },
+     "experience": {
+      "fields": {
+       "life_stages": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "work_history": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "hobbies": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       }
+      },
+      "narrative": ""
+     },
+     "character": {
+      "fields": {
+       "traits": {
+        "value": [
+         "спокойный"
+        ],
+        "source_kind": "original_legend",
+        "certainty": "defined",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "emotionality": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "habits": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       }
+      },
+      "narrative": ""
+     },
+     "worldview": {
+      "fields": {
+       "values": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "priorities": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "reasoning_style": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       }
+      },
+      "narrative": ""
+     },
+     "competence": {
+      "fields": {
+       "knowledge_areas": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "confidence": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "knowledge_limits": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "typical_mistakes": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       }
+      },
+      "narrative": ""
+     },
+     "speech": {
+      "fields": {
+       "phrase_length": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "vocabulary": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "formality": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "humor": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       }
+      },
+      "narrative": ""
+     },
+     "behavior": {
+      "fields": {
+       "on_incomplete_info": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "on_conflict": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "on_new_facts": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       }
+      },
+      "narrative": ""
+     },
+     "limits": {
+      "fields": {
+       "known_unknowns": {
+        "value": [
+         "размер хозяйства",
+         "конкретная специализация",
+         "семейное положение",
+         "убеждения"
+        ],
+        "source_kind": "original_legend",
+        "certainty": "defined",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "editor_restrictions": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "provenance_notes": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       }
+      },
+      "narrative": "Черновик создан из краткой исходной легенды. Всё, чего нет в легенде, остаётся неизвестным до интервью и решения редактора."
+     }
+    }
+   }
+  },
+  {
+   "name": "Валентина Абрамова",
+   "short_context": "Удалённая работа, горы и походы; между городом и деревней.",
+   "legend": "Независимая женщина, удалённо работает с ноутбуком, любит горы, походы и поездки; жизнь между городом и деревней, ценит свободу.",
+   "passport": {
+    "schema_version": 1,
+    "sections": {
+     "legend": {
+      "fields": {
+       "full_name": {
+        "value": "Валентина Абрамова",
+        "source_kind": "original_legend",
+        "certainty": "defined",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "age_range": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "occupation": {
+        "value": "Удалённая работа с ноутбуком (род занятий не уточнён)",
+        "source_kind": "original_legend",
+        "certainty": "defined",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "geography": {
+        "value": "Живёт между городом и деревней",
+        "source_kind": "original_legend",
+        "certainty": "defined",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "life_situation": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       }
+      },
+      "narrative": ""
+     },
+     "family": {
+      "fields": {
+       "family_status": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "close_people": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "household": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       }
+      },
+      "narrative": ""
+     },
+     "experience": {
+      "fields": {
+       "life_stages": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "work_history": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "hobbies": {
+        "value": [
+         "горы",
+         "походы",
+         "поездки"
+        ],
+        "source_kind": "original_legend",
+        "certainty": "defined",
+        "editor_approved": false,
+        "dependencies": []
+       }
+      },
+      "narrative": ""
+     },
+     "character": {
+      "fields": {
+       "traits": {
+        "value": [
+         "независимая"
+        ],
+        "source_kind": "original_legend",
+        "certainty": "defined",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "emotionality": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "habits": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       }
+      },
+      "narrative": ""
+     },
+     "worldview": {
+      "fields": {
+       "values": {
+        "value": [
+         "свобода"
+        ],
+        "source_kind": "original_legend",
+        "certainty": "defined",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "priorities": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "reasoning_style": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       }
+      },
+      "narrative": ""
+     },
+     "competence": {
+      "fields": {
+       "knowledge_areas": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "confidence": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "knowledge_limits": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "typical_mistakes": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       }
+      },
+      "narrative": ""
+     },
+     "speech": {
+      "fields": {
+       "phrase_length": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "vocabulary": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "formality": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "humor": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       }
+      },
+      "narrative": ""
+     },
+     "behavior": {
+      "fields": {
+       "on_incomplete_info": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "on_conflict": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "on_new_facts": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       }
+      },
+      "narrative": ""
+     },
+     "limits": {
+      "fields": {
+       "known_unknowns": {
+        "value": [
+         "точная профессия",
+         "возраст",
+         "конкретные города",
+         "происхождение дохода"
+        ],
+        "source_kind": "original_legend",
+        "certainty": "defined",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "editor_restrictions": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "provenance_notes": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       }
+      },
+      "narrative": "Черновик создан из краткой исходной легенды. Всё, чего нет в легенде, остаётся неизвестным до интервью и решения редактора."
+     }
+    }
+   }
+  },
+  {
+   "name": "Игорь Давыдов",
+   "short_context": "Около 37 лет, автосервис, интерес к истории Второй мировой войны.",
+   "legend": "Около 37 лет, автосервис, разведён, интересуется историей и темой Второй мировой войны, слушает Михаила Круга; в исходной легенде упоминалось употребление алкоголя.",
+   "passport": {
+    "schema_version": 1,
+    "sections": {
+     "legend": {
+      "fields": {
+       "full_name": {
+        "value": "Игорь Давыдов",
+        "source_kind": "original_legend",
+        "certainty": "defined",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "age_range": {
+        "value": "около 37 лет",
+        "source_kind": "original_legend",
+        "certainty": "defined",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "occupation": {
+        "value": "Связан с автосервисом (должность не уточнена)",
+        "source_kind": "original_legend",
+        "certainty": "defined",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "geography": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "life_situation": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       }
+      },
+      "narrative": ""
+     },
+     "family": {
+      "fields": {
+       "family_status": {
+        "value": "Разведён",
+        "source_kind": "original_legend",
+        "certainty": "defined",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "close_people": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "household": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       }
+      },
+      "narrative": ""
+     },
+     "experience": {
+      "fields": {
+       "life_stages": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "work_history": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "hobbies": {
+        "value": [
+         "история",
+         "тема Второй мировой войны",
+         "песни Михаила Круга"
+        ],
+        "source_kind": "original_legend",
+        "certainty": "defined",
+        "editor_approved": false,
+        "dependencies": []
+       }
+      },
+      "narrative": ""
+     },
+     "character": {
+      "fields": {
+       "traits": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "emotionality": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "habits": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       }
+      },
+      "narrative": ""
+     },
+     "worldview": {
+      "fields": {
+       "values": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "priorities": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "reasoning_style": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       }
+      },
+      "narrative": ""
+     },
+     "competence": {
+      "fields": {
+       "knowledge_areas": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "confidence": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "knowledge_limits": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "typical_mistakes": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       }
+      },
+      "narrative": ""
+     },
+     "speech": {
+      "fields": {
+       "phrase_length": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "vocabulary": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "formality": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "humor": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       }
+      },
+      "narrative": ""
+     },
+     "behavior": {
+      "fields": {
+       "on_incomplete_info": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "on_conflict": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "on_new_facts": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       }
+      },
+      "narrative": ""
+     },
+     "limits": {
+      "fields": {
+       "known_unknowns": {
+        "value": [
+         "конкретная должность",
+         "места работы",
+         "медицинские и личные сведения",
+         "точная биография"
+        ],
+        "source_kind": "original_legend",
+        "certainty": "defined",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "editor_restrictions": {
+        "value": "Медицинские и личные сведения (в т.ч. упоминание алкоголя в исходной легенде) не детализировать и не использовать как характеристику без решения редактора.",
+        "source_kind": "original_legend",
+        "certainty": "defined",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "provenance_notes": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       }
+      },
+      "narrative": "Черновик создан из краткой исходной легенды. Всё, чего нет в легенде, остаётся неизвестным до интервью и решения редактора."
+     }
+    }
+   }
+  },
+  {
+   "name": "Вадим Мельников",
+   "short_context": "Около 40 лет; история, книги, самиздат, World of Tanks.",
+   "legend": "Около 40 лет; история, книги, самиздат, игра World of Tanks; в исходной легенде присутствовали разговорные самоописания.",
+   "passport": {
+    "schema_version": 1,
+    "sections": {
+     "legend": {
+      "fields": {
+       "full_name": {
+        "value": "Вадим Мельников",
+        "source_kind": "original_legend",
+        "certainty": "defined",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "age_range": {
+        "value": "около 40 лет",
+        "source_kind": "original_legend",
+        "certainty": "defined",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "occupation": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "geography": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "life_situation": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       }
+      },
+      "narrative": ""
+     },
+     "family": {
+      "fields": {
+       "family_status": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "close_people": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "household": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       }
+      },
+      "narrative": ""
+     },
+     "experience": {
+      "fields": {
+       "life_stages": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "work_history": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "hobbies": {
+        "value": [
+         "история",
+         "книги",
+         "самиздат",
+         "World of Tanks"
+        ],
+        "source_kind": "original_legend",
+        "certainty": "defined",
+        "editor_approved": false,
+        "dependencies": []
+       }
+      },
+      "narrative": ""
+     },
+     "character": {
+      "fields": {
+       "traits": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "emotionality": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "habits": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       }
+      },
+      "narrative": ""
+     },
+     "worldview": {
+      "fields": {
+       "values": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "priorities": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "reasoning_style": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       }
+      },
+      "narrative": ""
+     },
+     "competence": {
+      "fields": {
+       "knowledge_areas": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "confidence": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "knowledge_limits": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "typical_mistakes": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       }
+      },
+      "narrative": ""
+     },
+     "speech": {
+      "fields": {
+       "phrase_length": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "vocabulary": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "formality": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "humor": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       }
+      },
+      "narrative": ""
+     },
+     "behavior": {
+      "fields": {
+       "on_incomplete_info": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "on_conflict": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "on_new_facts": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       }
+      },
+      "narrative": ""
+     },
+     "limits": {
+      "fields": {
+       "known_unknowns": {
+        "value": [
+         "род занятий",
+         "глубина исторических знаний",
+         "семья",
+         "социальный круг",
+         "убеждения"
+        ],
+        "source_kind": "original_legend",
+        "certainty": "defined",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "editor_restrictions": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       },
+       "provenance_notes": {
+        "value": null,
+        "source_kind": "editor",
+        "certainty": "unknown",
+        "editor_approved": false,
+        "dependencies": []
+       }
+      },
+      "narrative": "Черновик создан из краткой исходной легенды. Всё, чего нет в легенде, остаётся неизвестным до интервью и решения редактора."
+     }
+    }
+   }
+  }
+ ]
+}

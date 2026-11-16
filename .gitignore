@@ -16,6 +16,7 @@ __pycache__/
 # node
 node_modules/
 dist/
+dist-demo/
 playwright-report/
 test-results/
 *.tsbuildinfo

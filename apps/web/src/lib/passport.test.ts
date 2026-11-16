@@ -46,6 +46,7 @@ describe("sectionStats", () => {
 describe("format", () => {
   it("инициалы и склонение", () => {
     expect(initials("Любовь Богданова")).toBe("ЛБ");
+    expect(initials("Редактор (демо)")).toBe("Р");
     expect(plural(1, "поле", "поля", "полей")).toBe("поле");
     expect(plural(3, "поле", "поля", "полей")).toBe("поля");
     expect(plural(11, "поле", "поля", "полей")).toBe("полей");

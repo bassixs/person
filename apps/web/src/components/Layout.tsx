@@ -3,6 +3,8 @@ import * as DM from "@radix-ui/react-dropdown-menu";
 import { Bell, LogOut, Menu, Search, Settings, X } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { IS_DEMO } from "../api/client";
+import { DemoBanner } from "../demo/DemoUi";
 import { useAuth } from "../lib/auth";
 import { ROLE_LABEL } from "../lib/format";
 import { Ambient } from "./Ambient";
@@ -183,6 +185,7 @@ export function AppLayout() {
       <Ambient />
       <TopNav />
       <main className="relative z-10 pb-16" style={{ paddingTop: "calc(var(--nav-height) + 28px)" }}>
+        {IS_DEMO && <DemoBanner />}
         <Outlet />
       </main>
     </>

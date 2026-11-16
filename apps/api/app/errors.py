@@ -17,7 +17,7 @@ class ApiError(Exception):
 
 
 def not_found(what: str = "Объект") -> ApiError:
-    return ApiError(404, "not_found", f"{what} не найден")
+    return ApiError(404, "not_found", f"{what}: не найдено")
 
 
 def forbidden(message: str = "Недостаточно прав для этого действия") -> ApiError:

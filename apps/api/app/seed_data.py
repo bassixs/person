@@ -9,7 +9,10 @@
   оптимизации политических сообщений).
 """
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from app.passport import Passport
 
 L = "original_legend"
 
@@ -162,3 +165,46 @@ SEED_PERSONAS: list[dict[str, Any]] = [
         ],
     },
 ]
+
+
+def seed_passport(item: dict[str, Any]) -> "Passport":
+    """Черновой паспорт из легенды: только сведения легенды, остальное — «неизвестно»."""
+    from app.passport import Passport, PassportField, empty_passport
+
+    passport = empty_passport()
+    passport.sections["legend"].fields["full_name"] = PassportField(
+        value=item["name"], source_kind=L, certainty="defined"
+    )
+    for skey, fields in item["fields"].items():
+        for fkey, data in fields.items():
+            passport.sections[skey].fields[fkey] = PassportField(**data)
+    passport.sections["limits"].fields["known_unknowns"] = PassportField(
+        value=item["unknowns"], source_kind=L, certainty="defined"
+    )
+    if item.get("restrictions"):
+        passport.sections["limits"].fields["editor_restrictions"] = PassportField(
+            value=item["restrictions"], source_kind=L, certainty="defined"
+        )
+    passport.sections["limits"].narrative = (
+        "Черновик создан из краткой исходной легенды. Всё, чего нет в легенде, "
+        "остаётся неизвестным до интервью и решения редактора."
+    )
+    return Passport.model_validate(passport.model_dump())
+
+
+def demo_fixtures() -> dict[str, Any]:
+    """Данные для демо-сборки: та же схема и те же черновики, что у настоящего backend."""
+    from app.passport import schema_document
+
+    return {
+        "schema": schema_document(),
+        "seed": [
+            {
+                "name": item["name"],
+                "short_context": item["short_context"],
+                "legend": item["legend"],
+                "passport": seed_passport(item).model_dump(mode="json"),
+            }
+            for item in SEED_PERSONAS
+        ],
+    }

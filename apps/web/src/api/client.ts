@@ -12,6 +12,9 @@ export class ApiError extends Error {
   }
 }
 
+/** Демо-сборка (GitHub Pages): нет сервера, данные только в браузере. */
+export const IS_DEMO = import.meta.env.VITE_DEMO === "1";
+
 let csrfToken: string | null = null;
 
 export function setCsrfToken(token: string | null) {
@@ -42,6 +45,16 @@ export async function api<T>(
   path: string,
   opts: { body?: unknown; query?: Query } = {},
 ): Promise<T> {
+  if (IS_DEMO) {
+    // Демо-сборка для статического хостинга: запросы обрабатываются в браузере (src/demo/backend.ts).
+    const { demoRequest } = await import("../demo/backend");
+    const q: Record<string, string | string[] | undefined> = {};
+    for (const [k, v] of Object.entries(opts.query ?? {})) {
+      if (v === undefined || v === null || v === "") continue;
+      q[k] = Array.isArray(v) ? v : String(v);
+    }
+    return (await demoRequest(method, path, q, opts.body)) as T;
+  }
   const headers: Record<string, string> = { Accept: "application/json" };
   if (opts.body !== undefined) headers["Content-Type"] = "application/json";
   if (method !== "GET") {

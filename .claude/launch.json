@@ -4,14 +4,46 @@
     {
       "name": "api",
       "runtimeExecutable": "apps/api/.venv/Scripts/python.exe",
-      "runtimeArgs": ["-m", "uvicorn", "app.main:app", "--app-dir", "apps/api", "--port", "8000"],
+      "runtimeArgs": [
+        "-m",
+        "uvicorn",
+        "app.main:app",
+        "--app-dir",
+        "apps/api",
+        "--port",
+        "8000"
+      ],
       "port": 8000
     },
     {
       "name": "web",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["--prefix", "apps/web", "run", "dev"],
+      "runtimeArgs": [
+        "--prefix",
+        "apps/web",
+        "run",
+        "dev"
+      ],
       "port": 5173
+    },
+    {
+      "name": "web-demo",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": [
+        "--prefix",
+        "apps/web",
+        "vite",
+        "preview",
+        "apps/web",
+        "--outDir",
+        "dist-demo",
+        "--base",
+        "/person/",
+        "--port",
+        "4174",
+        "--strictPort"
+      ],
+      "port": 4174
     }
   ]
 }

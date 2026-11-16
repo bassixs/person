@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
-import { ApiError } from "../api/client";
+import { ApiError, IS_DEMO } from "../api/client";
+import { DemoLogin } from "../demo/DemoUi";
 import { Ambient, useAmbient } from "../components/Ambient";
 import { LogoMark } from "../components/Logo";
 import { useAuth } from "../lib/auth";
@@ -42,6 +43,14 @@ export function LoginPage() {
             <h1 className="mt-5 font-mono text-sm font-semibold tracking-[0.3em] text-fg text-glow">ЛИЧНОСТИ</h1>
             <p className="mt-2 text-sm text-muted">Внутренняя платформа аналитических персон и контекста</p>
           </div>
+          {IS_DEMO ? (
+            <DemoLogin
+              onLogin={async (demoEmail) => {
+                await login(demoEmail, "");
+                nav(from, { replace: true });
+              }}
+            />
+          ) : (
           <form onSubmit={submit} className="panel space-y-4 bg-surface/80 p-6 backdrop-blur" noValidate>
             <div className="space-y-1.5">
               <label htmlFor="email" className="text-sm font-medium text-fg-soft">
@@ -80,6 +89,7 @@ export function LoginPage() {
               {busy ? "Вход…" : "Войти"}
             </button>
           </form>
+          )}
           <p className="mt-6 text-center text-xs text-muted">
             Учётные записи создаёт администратор. Персоны — вымышленные внутренние модели, не реальные люди.
           </p>
