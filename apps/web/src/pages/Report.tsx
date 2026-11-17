@@ -270,7 +270,7 @@ function Path() {
 
 function Chat() {
   const { ref, shown } = useInView<HTMLDivElement>(0.3);
-  const bot = "rp-msg max-w-[92%] rounded-[20px] rounded-bl-md bg-white/[0.07] px-4 py-3 text-[14.5px] leading-snug";
+  const gray = "rp-msg rounded-[20px] bg-white/[0.07] px-4 py-3 text-[14.5px] leading-snug";
   return (
     <div ref={ref} className="rp-chat rp-card p-4 sm:p-5" data-shown={shown}>
       <div className="flex items-center justify-between border-b border-[color:var(--line)] pb-3">
@@ -280,30 +280,46 @@ function Chat() {
         </span>
       </div>
       <div className="mt-4 space-y-3">
-        <div className="rp-msg ml-auto max-w-[86%] rounded-[20px] rounded-br-md bg-[color:var(--signal)] px-4 py-3 text-[14.5px] leading-snug text-white" style={{ "--d": "200ms" } as CSSProperties}>
-          «Когда доделают дорогу на Садовой? Обещали к 25-му, а там до сих пор техника»
+        {/* 1. Комментарий жителя, который прислал сотрудник */}
+        <div className={clsx(gray, "max-w-[90%] rounded-bl-md")} style={{ "--d": "200ms" } as CSSProperties}>
+          <div className="rp-kicker mb-1.5">Комментарий жителя</div>
+          «Опять запреты. У нас только запрещать и умеют. Курю я или нет — моё личное дело, я взрослый человек»
         </div>
-        <div className={bot} style={{ "--d": "1000ms" } as CSSProperties}>
-          Похоже на тему <b>«Ремонт ул. Садовой»</b>. Использовать её?
-        </div>
-        <div className={bot} style={{ "--d": "1900ms" } as CSSProperties}>
-          <div className="rp-kicker mb-2">Разбор</div>
+        {/* 2. Разбор */}
+        <div className={clsx(gray, "max-w-[96%] rounded-bl-md")} style={{ "--d": "1100ms" } as CSSProperties}>
+          <div className="rp-kicker mb-2">Разбор · тема «Ограничение продажи вейпов»</div>
           <div className="space-y-1.5">
             <div className="flex gap-2">
-              <Check className="mt-0.5 h-4 w-4 shrink-0 text-[#4ade80]" /> Срок перенесён на 30 ноября — источник от 18 ноября
+              <Check className="mt-0.5 h-4 w-4 shrink-0 text-[#4ade80]" /> Ограничили продажу, а не курение взрослых —
+              региональный закон
             </div>
             <div className="flex gap-2 text-[color:var(--muted)]">
-              <X className="mt-0.5 h-4 w-4 shrink-0" /> <s>«До 25 ноября»</s> — устарело, в ответ не идёт
-            </div>
-            <div className="flex gap-2 text-[color:var(--muted)]">
-              <Sparkles className="mt-0.5 h-4 w-4 shrink-0" /> Вероятные вопросы: объезд, вывоз техники
+              <Sparkles className="mt-0.5 h-4 w-4 shrink-0" /> Главное раздражение: «запрещают мой личный выбор»
             </div>
           </div>
+          <div className="rp-kicker mb-2 mt-4">Как прочитают ответ · взгляд персон</div>
+          <ul className="space-y-1.5 text-[color:var(--ink-2)]">
+            <li>
+              <b className="text-[color:var(--ink)]">Артём:</b> запреты раздражают, но за детей поддержит → сразу сказать «вам
+              никто не запрещает»
+            </li>
+            <li>
+              <b className="text-[color:var(--ink)]">Любовь:</b> главное — школьники → про них
+            </li>
+            <li>
+              <b className="text-[color:var(--ink)]">Вадим:</b> не любит пафос → коротко, без морали
+            </li>
+          </ul>
         </div>
-        <div className={bot} style={{ "--d": "2800ms" } as CSSProperties}>
-          <div className="rp-kicker mb-2">Черновик ответа</div>
-          Работы завершатся до 30 ноября: срок скорректирован подрядчиком…{" "}
-          <span className="text-[color:var(--muted)]">— от имени ведомства, со ссылкой</span>
+        {/* 3. Черновик ответа — живым языком, от реального сотрудника */}
+        <div
+          className="rp-msg ml-auto max-w-[88%] rounded-[20px] rounded-br-md bg-[color:var(--signal)] px-4 py-3 text-[15px] leading-snug text-white"
+          style={{ "--d": "2200ms" } as CSSProperties}
+        >
+          <div className="mb-1.5 text-[11px] font-bold uppercase tracking-[0.1em] text-white/75">Черновик ответа</div>
+          Взрослым курить никто не запрещает — это ваше дело. Ограничили продажу из-за школьников: курят у школы, а дудки эти
+          уже из рук не выпускают.
+          <div className="mt-2 text-[12.5px] text-white/80">Анна · проверяет редактор</div>
         </div>
       </div>
     </div>
@@ -313,8 +329,8 @@ function Chat() {
 const STEPS = [
   ["Материал", "Комментарий, ссылка, скриншот или сразу пачка обращений."],
   ["Контекст", "Система предлагает тему — сотрудник подтверждает."],
-  ["Проверка", "Факты сверяются с базой: подтверждено, спорно, устарело."],
-  ["Результат", "Суть, вопросы людей, источники и черновик ответа."],
+  ["Разбор", "Что на самом деле произошло, что злит человека и как ответ прочитают разные люди."],
+  ["Ответ", "Короткий живой ответ, который снимает негатив, — от сотрудника под своим именем."],
 ];
 
 function Daily() {
