@@ -6,7 +6,8 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { ApiError, get, post } from "../api/client";
 import type { IntegrationStatus, Page, PersonaDetail, PersonaListItem, PersonaStatus } from "../api/types";
 import { useAmbient } from "../components/Ambient";
-import { EmptyState, ErrorState, Field, Modal, PageHeader, PersonaAvatar, PersonaCover, Spinner, StatusBadge } from "../components/ui";
+import { PersonaGameCard } from "../components/PersonaGameCard";
+import { EmptyState, ErrorState, Field, Modal, PageHeader, PersonaAvatar, Spinner, StatusBadge } from "../components/ui";
 import { useAuth } from "../lib/auth";
 import { fmtDate, STATUS_LABEL } from "../lib/format";
 
@@ -334,39 +335,15 @@ export function PersonasPage() {
       )}
 
       {items.length > 0 && view === "cards" && (
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-          {items.map((p) => (
-            <Link
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-4 sm:grid-cols-[repeat(auto-fill,minmax(220px,1fr))] sm:gap-5">
+          {items.map((p, i) => (
+            <PersonaGameCard
               key={p.id}
-              to={`/personas/${p.id}`}
-              className="panel group flex flex-col overflow-hidden transition-[border-color,transform,box-shadow] duration-200 hover:-translate-y-0.5 hover:border-line-strong hover:shadow-[0_20px_40px_-28px_rgb(20_20_20/0.45)]"
-            >
-              <PersonaCover name={p.display_name} className="h-44" />
-              <div className="flex flex-1 flex-col p-4">
-              <div className="flex items-start gap-3">
-                <div className="min-w-0 flex-1">
-                  <div className="truncate font-semibold text-fg">{p.display_name}</div>
-                  <VersionLabel p={p} />
-                </div>
-                {can("persona.archive") && <ArchiveButton p={p} />}
-              </div>
-              <p className="mt-3 line-clamp-2 min-h-[2.5rem] text-sm text-muted">{p.short_context || "Без описания"}</p>
-              <div className="mt-4 flex flex-wrap items-center gap-2">
-                <StatusBadge status={p.status} />
-                {p.is_seed && <span className="chip border-line text-muted">исходная легенда</span>}
-              </div>
-              <div className="mt-4 flex items-center justify-between border-t border-line pt-3 text-xs text-muted">
-                <Completeness p={p} />
-                <span title="Проверки согласованности появятся в итерации 2">
-                  {p.open_issues === null ? "проверка не запускалась" : `замечаний: ${p.open_issues}`}
-                </span>
-              </div>
-              <div className="mt-2 flex justify-between text-[11px] text-muted/80">
-                <span>{p.created_by?.display_name ?? "—"}</span>
-                <span>изм. {fmtDate(p.updated_at)}</span>
-              </div>
-              </div>
-            </Link>
+              p={p}
+              index={i}
+              total={items.length}
+              action={can("persona.archive") ? <ArchiveButton p={p} /> : undefined}
+            />
           ))}
         </div>
       )}

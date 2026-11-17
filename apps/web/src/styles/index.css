@@ -231,3 +231,119 @@ html[data-hidden="true"] .ambient * {
     opacity: 1;
   }
 }
+
+/* ---------- Карта персоны в каталоге (как в отчёте /about, E-023) ---------- */
+
+.pcard {
+  --rx: 0deg;
+  --ry: 0deg;
+  position: relative;
+  display: block;
+  aspect-ratio: 3 / 4.3;
+  border-radius: 26px;
+  isolation: isolate;
+  transition:
+    transform 0.45s var(--ease-out),
+    box-shadow 0.45s var(--ease-out);
+  box-shadow: 0 24px 50px -32px rgb(20 20 20 / 0.55);
+}
+.pcard:hover {
+  transform: translateY(-6px);
+  box-shadow:
+    0 0 0 3px rgb(var(--canvas)),
+    0 0 0 5.5px var(--pc),
+    0 36px 70px -34px color-mix(in srgb, var(--pc) 75%, black);
+}
+.pcard:focus-visible {
+  outline: 3px solid var(--pc);
+  outline-offset: 4px;
+  border-radius: 26px;
+}
+.pcard__inner {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  background: var(--pc);
+  transform: perspective(900px) rotateX(var(--ry)) rotateY(var(--rx));
+  transition: transform 0.35s var(--ease-out);
+}
+.pcard__img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 0%;
+  transition: transform 0.7s var(--ease-out);
+}
+.pcard:hover .pcard__img {
+  transform: scale(1.05);
+}
+.pcard__blank {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-bottom: 30%;
+  font-family: "Unbounded", sans-serif;
+  font-size: clamp(40px, 6vw, 72px);
+  font-weight: 700;
+  color: rgb(255 255 255 / 0.85);
+  background:
+    radial-gradient(circle at 50% 38%, rgb(255 255 255 / 0.25), transparent 55%),
+    linear-gradient(180deg, var(--pc), color-mix(in srgb, var(--pc) 45%, black));
+}
+.pcard__shade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgb(0 0 0 / 0.25) 0%, transparent 22%, transparent 42%, rgb(10 10 10 / 0.82) 100%);
+}
+.pcard__status {
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 9px;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.2);
+  backdrop-filter: blur(8px);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+}
+.pcard__name {
+  font-family: "Unbounded", sans-serif;
+  font-weight: 700;
+  font-size: clamp(15px, 1.35vw, 20px);
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+  color: #fff;
+}
+.pcard__action {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  z-index: 2;
+}
+.pcard__action button {
+  background: rgb(255 255 255 / 0.2);
+  color: #fff;
+  backdrop-filter: blur(8px);
+  border-radius: 999px;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+}
+.pcard__action button:hover {
+  background: rgb(255 255 255 / 0.35);
+  color: #fff;
+}
+@media (prefers-reduced-motion: reduce) {
+  .pcard,
+  .pcard__inner,
+  .pcard__img {
+    transition: none;
+    transform: none !important;
+  }
+}
