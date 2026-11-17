@@ -7,7 +7,7 @@ import "@fontsource/unbounded/latin-700.css";
 import "./report/report.css";
 
 import clsx from "clsx";
-import { ArrowDown, ArrowUpRight, Check, CircleDashed, Lock, Sparkles, X } from "lucide-react";
+import { ArrowDown, ArrowUpRight, Check, CircleDashed, Lock, Sparkles } from "lucide-react";
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../lib/auth";
@@ -139,19 +139,12 @@ function Characters({ active }: { active: number }) {
           </p>
         </div>
         <CharacterScreen p={p} />
-        <Reveal className="mt-8 grid gap-3 sm:grid-cols-2">
+        <Reveal className="mt-8">
           <div className="flex gap-3 rounded-2xl bg-[color:var(--done)]/10 p-4">
             <Check className="mt-0.5 h-5 w-5 shrink-0 text-[color:var(--done)]" />
             <p className="text-[15px]">
               <b>Для чего:</b> заранее увидеть, какие вопросы материал вызовет у пенсионерки, фермера или человека из
               автосервиса.
-            </p>
-          </div>
-          <div className="flex gap-3 rounded-2xl bg-black/5 p-4">
-            <X className="mt-0.5 h-5 w-5 shrink-0 text-[color:var(--muted)]" />
-            <p className="text-[15px]">
-              <b>Чего не делает:</b> не пишет посты от имени «жителей», не заменяет опросы и не является источником
-              фактов. Портреты сгенерированы ИИ в стилизованной манере — это не фото реальных людей.
             </p>
           </div>
         </Reveal>
@@ -311,7 +304,7 @@ function Chat() {
             </li>
           </ul>
         </div>
-        {/* 3. Черновик ответа — живым языком, от реального сотрудника */}
+        {/* 3. Черновик ответа — живым языком; публикует сотрудник, редактор проверяет */}
         <div
           className="rp-msg ml-auto max-w-[88%] rounded-[20px] rounded-br-md bg-[color:var(--signal)] px-4 py-3 text-[15px] leading-snug text-white"
           style={{ "--d": "2200ms" } as CSSProperties}
@@ -319,7 +312,6 @@ function Chat() {
           <div className="mb-1.5 text-[11px] font-bold uppercase tracking-[0.1em] text-white/75">Черновик ответа</div>
           Взрослым курить никто не запрещает — это ваше дело. Ограничили продажу из-за школьников: курят у школы, а дудки эти
           уже из рук не выпускают.
-          <div className="mt-2 text-[12.5px] text-white/80">Анна · проверяет редактор</div>
         </div>
       </div>
     </div>

@@ -6,7 +6,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { ApiError, get, post } from "../api/client";
 import type { IntegrationStatus, Page, PersonaDetail, PersonaListItem, PersonaStatus } from "../api/types";
 import { useAmbient } from "../components/Ambient";
-import { Avatar, EmptyState, ErrorState, Field, Modal, PageHeader, Spinner, StatusBadge } from "../components/ui";
+import { EmptyState, ErrorState, Field, Modal, PageHeader, PersonaAvatar, PersonaCover, Spinner, StatusBadge } from "../components/ui";
 import { useAuth } from "../lib/auth";
 import { fmtDate, STATUS_LABEL } from "../lib/format";
 
@@ -339,10 +339,11 @@ export function PersonasPage() {
             <Link
               key={p.id}
               to={`/personas/${p.id}`}
-              className="panel group flex flex-col p-4 transition-[border-color,background-color] duration-200 hover:border-line-strong hover:bg-elevated/60"
+              className="panel group flex flex-col overflow-hidden transition-[border-color,transform,box-shadow] duration-200 hover:-translate-y-0.5 hover:border-line-strong hover:shadow-[0_20px_40px_-28px_rgb(20_20_20/0.45)]"
             >
+              <PersonaCover name={p.display_name} className="h-44" />
+              <div className="flex flex-1 flex-col p-4">
               <div className="flex items-start gap-3">
-                <Avatar name={p.display_name} />
                 <div className="min-w-0 flex-1">
                   <div className="truncate font-semibold text-fg">{p.display_name}</div>
                   <VersionLabel p={p} />
@@ -363,6 +364,7 @@ export function PersonasPage() {
               <div className="mt-2 flex justify-between text-[11px] text-muted/80">
                 <span>{p.created_by?.display_name ?? "—"}</span>
                 <span>изм. {fmtDate(p.updated_at)}</span>
+              </div>
               </div>
             </Link>
           ))}
@@ -389,7 +391,7 @@ export function PersonasPage() {
                 <tr key={p.id} className="transition-colors hover:bg-elevated/50">
                   <td className="px-4 py-2.5">
                     <Link to={`/personas/${p.id}`} className="flex items-center gap-2.5 font-medium text-fg hover:text-accent">
-                      <Avatar name={p.display_name} size={28} />
+                      <PersonaAvatar name={p.display_name} size={28} />
                       {p.display_name}
                     </Link>
                   </td>

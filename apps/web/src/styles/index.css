@@ -16,13 +16,20 @@
     min-height: 100vh;
   }
   ::selection {
-    background: rgb(var(--accent) / 0.35);
-    color: rgb(var(--fg));
+    background: rgb(var(--fg));
+    color: rgb(var(--canvas));
+  }
+  /* Заголовки — Unbounded, как в отчёте */
+  h1,
+  h2,
+  h3 {
+    font-family: "Unbounded", "Manrope", sans-serif;
+    letter-spacing: -0.025em;
   }
   :focus-visible {
     outline: 2px solid rgb(var(--accent));
     outline-offset: 2px;
-    border-radius: 6px;
+    border-radius: 8px;
   }
   * {
     scrollbar-color: rgb(var(--line-strong)) transparent;
@@ -34,33 +41,33 @@
     @apply mx-auto w-full max-w-shell px-4 sm:px-6 lg:px-8;
   }
   .panel {
-    @apply rounded-card border border-line bg-surface/90;
+    @apply rounded-card border border-line bg-surface;
   }
   .panel-elevated {
-    @apply rounded-card border border-line-strong/70 bg-elevated/80;
+    @apply rounded-card border border-line bg-surface;
+    box-shadow: 0 18px 40px -28px rgb(20 20 20 / 0.35);
   }
   .label-mono {
-    @apply font-mono text-[11px] uppercase tracking-[0.08em] text-muted;
+    @apply font-display text-[10.5px] font-medium uppercase tracking-[0.12em] text-muted;
   }
   .btn {
-    @apply inline-flex h-9 select-none items-center justify-center gap-2 whitespace-nowrap rounded-ui px-3.5 text-sm font-semibold
+    @apply inline-flex h-10 select-none items-center justify-center gap-2 whitespace-nowrap rounded-ui px-3.5 text-sm font-semibold
       transition-[background-color,border-color,color,box-shadow,opacity] duration-150 disabled:cursor-not-allowed disabled:opacity-45;
   }
   .btn-primary {
-    @apply btn bg-accent text-white hover:bg-accent/90;
-    box-shadow: 0 0 0 1px rgb(var(--accent) / 0.4), 0 8px 28px -10px rgb(var(--accent) / 0.65);
+    @apply btn bg-fg text-canvas hover:bg-fg/85 active:scale-[0.98];
   }
   .btn-secondary {
-    @apply btn border border-line-strong bg-elevated text-fg-soft hover:border-muted/60 hover:bg-elevated/60;
+    @apply btn border-[1.5px] border-line-strong bg-surface text-fg hover:border-fg/40 hover:bg-surface;
   }
   .btn-ghost {
     @apply btn text-muted hover:bg-elevated hover:text-fg;
   }
   .btn-sm {
-    @apply h-8 px-2.5 text-[13px];
+    @apply h-8 rounded-xl px-2.5 text-[13px];
   }
   .input {
-    @apply w-full rounded-ui border border-line-strong bg-canvas/60 px-3 py-2 text-sm text-fg placeholder:text-muted/70
+    @apply w-full rounded-ui border border-line-strong bg-surface px-3 py-2 text-sm text-fg placeholder:text-muted/70
       transition-colors duration-150 focus:border-accent/70 focus:outline-none focus:ring-2 focus:ring-accent/25 disabled:opacity-60;
   }
   .chip {
@@ -204,12 +211,12 @@ html[data-hidden="true"] .ambient * {
 
 .hero-glow {
   background:
-    radial-gradient(120% 140% at 0% 0%, rgb(var(--garnet) / 0.55), transparent 55%),
-    radial-gradient(80% 120% at 100% 0%, rgb(var(--accent) / 0.12), transparent 60%),
-    rgb(var(--surface) / 0.7);
+    radial-gradient(90% 140% at 100% 0%, rgb(var(--garnet) / 0.9), transparent 60%),
+    rgb(var(--surface));
 }
+/* Наследие тёмной темы: в светлой свечение текста не используется */
 .text-glow {
-  text-shadow: 0 0 32px rgb(var(--accent) / 0.45);
+  text-shadow: none;
 }
 
 /* Модальные окна центрируются через transform — анимируем только прозрачность */

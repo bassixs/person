@@ -26,8 +26,9 @@ export default {
       fontFamily: {
         sans: ["Manrope", "system-ui", "Segoe UI", "Arial", "sans-serif"],
         mono: ["'Geist Mono'", "ui-monospace", "Consolas", "monospace"],
+        display: ["Unbounded", "Manrope", "sans-serif"],
       },
-      borderRadius: { ui: "12px", card: "16px", hero: "28px" },
+      borderRadius: { ui: "14px", card: "22px", hero: "32px" },
       maxWidth: { shell: "1520px" },
     },
   },

@@ -40,7 +40,7 @@ export function LoginPage() {
         <div className="w-full max-w-sm fade-in">
           <div className="mb-8 flex flex-col items-center text-center">
             <LogoMark size={52} />
-            <h1 className="mt-5 font-mono text-sm font-semibold tracking-[0.3em] text-fg text-glow">ЛИЧНОСТИ</h1>
+            <h1 className="mt-5 text-xl font-bold tracking-[0.04em] text-fg">ЛИЧНОСТИ</h1>
             <p className="mt-2 text-sm text-muted">Внутренняя платформа аналитических персон и контекста</p>
           </div>
           {IS_DEMO ? (
@@ -51,7 +51,7 @@ export function LoginPage() {
               }}
             />
           ) : (
-          <form onSubmit={submit} className="panel space-y-4 bg-surface/80 p-6 backdrop-blur" noValidate>
+          <form onSubmit={submit} className="panel space-y-4 p-6" noValidate>
             <div className="space-y-1.5">
               <label htmlFor="email" className="text-sm font-medium text-fg-soft">
                 Рабочий email

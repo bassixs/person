@@ -116,8 +116,11 @@ export function TopNav() {
   const [open, setOpen] = useState(false);
   const loc = useLocation();
   return (
-    <header className="fixed inset-x-0 top-0 z-40 border-b border-line/80 bg-canvas/75 backdrop-blur-xl" style={{ height: "var(--nav-height)" }}>
-      <div className="shell flex h-full items-center gap-4">
+    <header className="fixed inset-x-2 top-2 z-40 sm:inset-x-3 sm:top-3">
+      <div
+        className="mx-auto flex max-w-shell items-center gap-4 rounded-[20px] border border-line bg-canvas/80 pl-4 pr-2 backdrop-blur-xl backdrop-saturate-150"
+        style={{ height: "var(--nav-height)" }}
+      >
         <Link to="/overview" className="shrink-0 rounded-ui" aria-label="Личности — на главную">
           <Wordmark />
         </Link>
@@ -128,19 +131,12 @@ export function TopNav() {
               to={n.to}
               className={({ isActive }) =>
                 clsx(
-                  "relative rounded-ui px-3 py-1.5 text-sm font-medium transition-colors duration-150",
-                  isActive ? "text-fg" : "text-muted hover:text-fg-soft",
+                  "rounded-xl px-3.5 py-2 text-sm font-semibold transition-colors duration-150",
+                  isActive ? "bg-fg text-canvas" : "text-fg-soft hover:bg-elevated",
                 )
               }
             >
-              {({ isActive }) => (
-                <>
-                  {n.label}
-                  {isActive && (
-                    <span className="absolute inset-x-3 -bottom-[13px] h-0.5 rounded-full bg-accent shadow-[0_0_14px_2px_rgb(var(--accent)/0.7)]" />
-                  )}
-                </>
-              )}
+              {n.label}
             </NavLink>
           ))}
         </nav>
@@ -161,8 +157,8 @@ export function TopNav() {
         </div>
       </div>
       {open && (
-        <div className="border-b border-line bg-canvas/95 backdrop-blur-xl md:hidden fade-in" key={loc.pathname}>
-          <nav className="shell flex flex-col gap-1 py-3" aria-label="Мобильная навигация">
+        <div className="mt-2 rounded-[20px] border border-line bg-canvas/95 backdrop-blur-xl md:hidden fade-in" key={loc.pathname}>
+          <nav className="flex flex-col gap-1 p-3" aria-label="Мобильная навигация">
             <div className="mb-2">
               <GlobalSearch onDone={() => setOpen(false)} />
             </div>
@@ -172,7 +168,7 @@ export function TopNav() {
                 to={n.to}
                 onClick={() => setOpen(false)}
                 className={({ isActive }) =>
-                  clsx("rounded-ui px-3 py-2.5 text-[15px] font-medium", isActive ? "bg-elevated text-fg" : "text-muted")
+                  clsx("rounded-xl px-3 py-2.5 text-[15px] font-semibold", isActive ? "bg-fg text-canvas" : "text-fg-soft")
                 }
               >
                 {n.label}
@@ -190,7 +186,7 @@ export function AppLayout() {
     <>
       <Ambient />
       <TopNav />
-      <main className="relative z-10 pb-16" style={{ paddingTop: "calc(var(--nav-height) + 28px)" }}>
+      <main className="relative z-10 pb-16" style={{ paddingTop: "calc(var(--nav-height) + 40px)" }}>
         {IS_DEMO && <DemoBanner />}
         <Outlet />
       </main>

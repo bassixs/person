@@ -52,7 +52,7 @@ export function OverviewPage() {
     <div className="shell space-y-8">
       <section className="hero-glow relative overflow-hidden rounded-hero border border-line p-6 sm:p-10">
         <div className="label-mono text-accent/90">Рабочее пространство</div>
-        <h1 className="mt-3 max-w-3xl text-3xl font-extrabold tracking-tight text-fg sm:text-[44px] sm:leading-[1.08]">
+        <h1 className="mt-3 max-w-3xl text-[26px] font-bold leading-[1.1] text-fg sm:text-[34px]">
           Добрый день, {me?.display_name.split(" ")[0]}.
           <br />
           <span className="text-glow">Сайт настраивает, ИИ предлагает, редактор утверждает.</span>

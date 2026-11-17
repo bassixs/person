@@ -21,7 +21,7 @@ export function DemoLogin({ onLogin }: { onLogin: (email: string) => Promise<voi
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   return (
-    <div className="panel space-y-3 bg-surface/80 p-6 backdrop-blur">
+    <div className="panel space-y-3 p-6">
       <div className="flex items-start gap-2 rounded-ui border border-warning/40 bg-warning/10 px-3 py-2 text-xs leading-relaxed text-fg-soft">
         <FlaskConical className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
         <span>

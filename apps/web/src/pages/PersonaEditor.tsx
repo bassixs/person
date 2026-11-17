@@ -30,7 +30,7 @@ import type {
 } from "../api/types";
 import { useAmbient } from "../components/Ambient";
 import { FieldEditor } from "../components/passport/FieldEditor";
-import { Avatar, EmptyState, ErrorState, Modal, Spinner, StatusBadge } from "../components/ui";
+import { EmptyState, ErrorState, Modal, PersonaAvatar, Spinner, StatusBadge } from "../components/ui";
 import { sectionStats } from "../lib/passport";
 import { ACTION_LABEL, fmtDateTime, VERSION_STATE_LABEL } from "../lib/format";
 
@@ -298,7 +298,7 @@ export function PersonaEditorPage() {
           <Link to="/personas" className="btn-ghost h-9 w-9 shrink-0 px-0" aria-label="К каталогу">
             <ArrowLeft className="h-4 w-4" />
           </Link>
-          <Avatar name={p.display_name} size={44} />
+          <PersonaAvatar name={p.display_name} size={56} />
           <div className="min-w-0">
             <h1 className="truncate text-xl font-bold text-fg sm:text-2xl">{p.display_name}</h1>
             <div className="mt-1 flex flex-wrap items-center gap-2">

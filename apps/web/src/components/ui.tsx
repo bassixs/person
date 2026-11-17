@@ -1,3 +1,4 @@
+import { portraitFor } from "../lib/portraits";
 import clsx from "clsx";
 import * as Dialog from "@radix-ui/react-dialog";
 import { AlertTriangle, Construction, Loader2, X } from "lucide-react";
@@ -33,6 +34,44 @@ export function Avatar({ name, size = 40 }: { name: string; size?: number }) {
     >
       {initials(name)}
     </span>
+  );
+}
+
+/** Аватар персоны: портрет, если он есть для исходной легенды, иначе инициалы. */
+export function PersonaAvatar({ name, size = 40 }: { name: string; size?: number }) {
+  const portrait = portraitFor(name);
+  if (!portrait) return <Avatar name={name} size={size} />;
+  return (
+    <img
+      src={portrait.src}
+      alt=""
+      aria-hidden
+      className="shrink-0 rounded-ui object-cover"
+      style={{ width: size, height: size, objectPosition: "50% 18%", background: portrait.color }}
+    />
+  );
+}
+
+/** Широкая обложка карточки персоны: портрет или цветная плашка с инициалами. */
+export function PersonaCover({ name, className }: { name: string; className?: string }) {
+  const portrait = portraitFor(name);
+  return (
+    <div className={clsx("relative overflow-hidden bg-elevated", className)}>
+      {portrait ? (
+        <img
+          src={portrait.src}
+          alt=""
+          aria-hidden
+          loading="lazy"
+          className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+          style={{ objectPosition: "50% 22%", background: portrait.color }}
+        />
+      ) : (
+        <span className="absolute inset-0 flex items-center justify-center font-display text-4xl font-bold text-muted/60">
+          {initials(name)}
+        </span>
+      )}
+    </div>
   );
 }
 
@@ -136,7 +175,7 @@ export function LocalTabs({ items }: { items: { to: string; label: string; end?:
           {({ isActive }) => (
             <>
               {it.label}
-              {isActive && <span className="absolute inset-x-2 -bottom-px h-0.5 rounded-full bg-accent shadow-[0_0_12px_rgb(var(--accent))]" />}
+              {isActive && <span className="absolute inset-x-2 -bottom-px h-[3px] rounded-full bg-accent" />}
             </>
           )}
         </NavLink>
@@ -163,7 +202,7 @@ export function Modal({
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm fade-in" />
+        <Dialog.Overlay className="fixed inset-0 z-50 bg-fg/35 backdrop-blur-sm fade-in" />
         <Dialog.Content
           className={clsx(
             "panel-elevated fixed left-1/2 top-1/2 z-50 max-h-[90vh] w-[calc(100vw-2rem)] -translate-x-1/2 -translate-y-1/2 overflow-y-auto bg-surface p-6 shadow-2xl modal-in",
