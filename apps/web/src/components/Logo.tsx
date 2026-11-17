@@ -1,23 +1,28 @@
 /**
- * Знак «Личности» (финальный логотип не утверждён — PROJECT_CONTEXT §20): две «грани» одной персоны вокруг точки.
- * Светлый стиль (E-021): чернильная плашка, бумажная и оранжевая дуги.
+ * Знак «Личности»: веер из трёх карточек персонажей — главный образ продукта (отчёт /about, E-021/E-022).
+ * Передняя карточка — персона с оранжевой «искрой»; задние — оранжевая и графитовая. Финальный логотип не утверждён (§20).
+ * Та же геометрия — в public/mark.svg (фавикон).
  */
-export function LogoMark({ size = 28 }: { size?: number }) {
+export function LogoMark({ size = 28, title }: { size?: number; title?: string }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 32 32" aria-hidden="true">
-      <rect x="0.5" y="0.5" width="31" height="31" rx="10" fill="rgb(var(--fg))" />
-      <path d="M11 8.5a7.5 7.5 0 0 0 0 15" fill="none" stroke="rgb(var(--canvas))" strokeWidth="2.2" strokeLinecap="round" />
-      <path d="M21 8.5a7.5 7.5 0 0 1 0 15" fill="none" stroke="rgb(var(--accent))" strokeWidth="2.2" strokeLinecap="round" />
-      <circle cx="16" cy="16" r="3.2" fill="rgb(var(--accent))" />
+    <svg width={size} height={size} viewBox="0 0 64 64" role={title ? "img" : undefined} aria-hidden={title ? undefined : true}>
+      {title && <title>{title}</title>}
+      <g transform="rotate(-21 32 60)">
+        <rect x="20.5" y="16" width="23" height="33" rx="6.5" fill="rgb(var(--accent))" />
+      </g>
+      <g transform="rotate(19 32 60)">
+        <rect x="20.5" y="16" width="23" height="33" rx="6.5" fill="#55534c" />
+      </g>
+      <g transform="rotate(-4 32 60)">
+        <rect x="19" y="13" width="26" height="38" rx="7" fill="rgb(var(--fg))" />
+        <circle cx="32" cy="27.5" r="5.6" fill="rgb(var(--accent))" />
+        <path d="M22.5 45a9.5 7.6 0 0 1 19 0z" fill="rgb(var(--canvas))" />
+      </g>
     </svg>
   );
 }
 
+/** Название — как в шапке отчёта: только текст, Unbounded 800. */
 export function Wordmark() {
-  return (
-    <span className="flex items-center gap-2.5">
-      <LogoMark />
-      <span className="font-display text-[15px] font-bold tracking-[0.04em] text-fg">ЛИЧНОСТИ</span>
-    </span>
-  );
+  return <span className="font-display text-[15px] font-extrabold tracking-[0.04em] text-fg">ЛИЧНОСТИ</span>;
 }

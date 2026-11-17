@@ -118,7 +118,7 @@ export function TopNav() {
   return (
     <header className="fixed inset-x-2 top-2 z-40 sm:inset-x-3 sm:top-3">
       <div
-        className="mx-auto flex max-w-shell items-center gap-4 rounded-[20px] border border-line bg-canvas/80 pl-4 pr-2 backdrop-blur-xl backdrop-saturate-150"
+        className="mx-auto flex max-w-shell items-center gap-4 rounded-[20px] border border-line bg-canvas/80 pl-[18px] pr-2 backdrop-blur-xl backdrop-saturate-150"
         style={{ height: "var(--nav-height)" }}
       >
         <Link to="/overview" className="shrink-0 rounded-ui" aria-label="Личности — на главную">
@@ -131,8 +131,8 @@ export function TopNav() {
               to={n.to}
               className={({ isActive }) =>
                 clsx(
-                  "rounded-xl px-3.5 py-2 text-sm font-semibold transition-colors duration-150",
-                  isActive ? "bg-fg text-canvas" : "text-fg-soft hover:bg-elevated",
+                  "rounded-xl px-3 py-2 text-[14px] font-semibold transition-colors duration-150",
+                  isActive ? "bg-fg/[0.07] text-fg" : "text-fg-soft hover:bg-fg/5",
                 )
               }
             >
@@ -168,7 +168,7 @@ export function TopNav() {
                 to={n.to}
                 onClick={() => setOpen(false)}
                 className={({ isActive }) =>
-                  clsx("rounded-xl px-3 py-2.5 text-[15px] font-semibold", isActive ? "bg-fg text-canvas" : "text-fg-soft")
+                  clsx("rounded-xl px-3 py-2.5 text-[15px] font-semibold", isActive ? "bg-fg/[0.07] text-fg" : "text-fg-soft")
                 }
               >
                 {n.label}
