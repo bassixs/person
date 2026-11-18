@@ -102,7 +102,7 @@ function Hero({ active, setActive }: { active: number; setActive: (i: number) =>
   return (
     <section id="top" className="relative overflow-hidden pb-10 pt-28 sm:pt-32">
       <div className="rp-wrap text-center">
-        <div className="rp-kicker">Отчёт о проекте · 16 ноября 2026 · этап 1 из 5 завершён</div>
+        <div className="rp-kicker">Отчёт о проекте · этап 1 из 5 завершён</div>
         <h1 className="rp-display mx-auto mt-5 max-w-5xl" style={{ fontSize: "clamp(34px, 4.8vw, 72px)" }}>
           Семь персонажей. <span className="text-[color:var(--signal)]">Одна система</span> проверки.
         </h1>
