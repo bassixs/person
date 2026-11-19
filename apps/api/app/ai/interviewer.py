@@ -83,30 +83,80 @@ def context_block(name: str, passport: Passport, legend: str | None) -> str:
 # ---------- Схемы ответов модели ----------
 
 
+def _clip(v: Any, n: int) -> Any:
+    return v[:n].rstrip() if isinstance(v, str) else v
+
+
+def _keep_valid(items: Any, model: type[BaseModel], limit: int) -> list[Any]:
+    """Терпимый разбор: некорректные элементы отбрасываются, лишние — обрезаются.
+
+    Модели пишут по-разному подробно; из-за одного неудачного элемента не стоит терять весь ответ.
+    """
+    if not isinstance(items, list):
+        return []
+    kept: list[Any] = []
+    for it in items:
+        try:
+            kept.append(model.model_validate(it))
+        except ValueError:
+            continue
+        if len(kept) >= limit:
+            break
+    return kept
+
+
 class QuestionOut(BaseModel):
-    question: str = Field(min_length=5, max_length=500)
-    why: str = Field(default="", max_length=300)
-    field_paths: list[str] = Field(min_length=1, max_length=4)
+    question: str = Field(min_length=5, max_length=600)
+    why: str = ""
+    field_paths: list[str] = Field(min_length=1)
+
+    @model_validator(mode="before")
+    @classmethod
+    def _soft(cls, data: Any) -> Any:
+        if isinstance(data, dict):
+            data = {**data, "why": _clip(data.get("why") or "", 400)}
+        return data
 
     @field_validator("field_paths")
     @classmethod
     def _known(cls, v: list[str]) -> list[str]:
-        bad = [p for p in v if p not in FIELD_PATHS | NARRATIVE_PATHS]
-        if bad:
-            raise ValueError(f"Неизвестные поля: {', '.join(bad)}")
-        return v
+        known = [p for p in v if p in FIELD_PATHS | NARRATIVE_PATHS]
+        if not known:
+            raise ValueError("Вопрос не связан ни с одним полем паспорта")
+        return known[:8]
+
+
+def _questions(raw: Any, *, required: bool) -> list[QuestionOut]:
+    qs = _keep_valid(raw, QuestionOut, 5)
+    if required and len(qs) < 3:
+        raise ValueError("Нужно от 3 до 5 корректных вопросов")
+    return qs if len(qs) >= 3 else []
 
 
 class RoundOut(BaseModel):
-    questions: list[QuestionOut] = Field(min_length=3, max_length=5)
+    questions: list[QuestionOut]
+
+    @model_validator(mode="before")
+    @classmethod
+    def _soft(cls, data: Any) -> Any:
+        if isinstance(data, dict):
+            data = {**data, "questions": _questions(data.get("questions"), required=True)}
+        return data
 
 
 class ProposalOut(BaseModel):
     field_path: str
     value: str | list[str]
     certainty: Literal["hypothesis", "defined"] = "hypothesis"
-    rationale: str = Field(min_length=3, max_length=600)
-    related_paths: list[str] = Field(default_factory=list, max_length=6)
+    rationale: str = Field(min_length=3)
+    related_paths: list[str] = Field(default_factory=list)
+
+    @model_validator(mode="before")
+    @classmethod
+    def _soft(cls, data: Any) -> Any:
+        if isinstance(data, dict):
+            data = {**data, "rationale": _clip(data.get("rationale") or "", 800)}
+        return data
 
     @model_validator(mode="after")
     def _check(self) -> ProposalOut:
@@ -125,23 +175,39 @@ class ProposalOut(BaseModel):
                 raise ValueError(f"{self.field_path}: пустой список")
         elif not self.value.strip():
             raise ValueError(f"{self.field_path}: пустое значение")
-        self.related_paths = [p for p in self.related_paths if p in FIELD_PATHS | NARRATIVE_PATHS]
+        self.related_paths = [p for p in self.related_paths if p in FIELD_PATHS | NARRATIVE_PATHS][
+            :6
+        ]
         return self
 
 
 class ProcessOut(BaseModel):
-    proposals: list[ProposalOut] = Field(default_factory=list, max_length=12)
-    next_questions: list[QuestionOut] = Field(default_factory=list, max_length=5)
+    proposals: list[ProposalOut] = Field(default_factory=list)
+    next_questions: list[QuestionOut] = Field(default_factory=list)
 
-    @model_validator(mode="after")
-    def _round_size(self) -> ProcessOut:
-        if self.next_questions and len(self.next_questions) < 3:
-            raise ValueError("next_questions: либо пусто, либо от 3 до 5 вопросов")
-        return self
+    @model_validator(mode="before")
+    @classmethod
+    def _soft(cls, data: Any) -> Any:
+        if not isinstance(data, dict) or "proposals" not in data:
+            raise ValueError("Ожидается объект с полем proposals")
+        return {
+            "proposals": _keep_valid(data.get("proposals"), ProposalOut, 12),
+            "next_questions": _questions(data.get("next_questions"), required=False),
+        }
 
 
 class DeepenOut(BaseModel):
-    proposals: list[ProposalOut] = Field(min_length=1, max_length=8)
+    proposals: list[ProposalOut]
+
+    @model_validator(mode="before")
+    @classmethod
+    def _soft(cls, data: Any) -> Any:
+        if not isinstance(data, dict):
+            raise ValueError("Ожидается объект с полем proposals")
+        kept = _keep_valid(data.get("proposals"), ProposalOut, 8)
+        if not kept:
+            raise ValueError("Нет ни одного корректного предложения")
+        return {"proposals": kept}
 
 
 # ---------- Промпты ----------

@@ -1,5 +1,6 @@
 """Конфигурация приложения. Все секреты — только из окружения, никогда не уходят на frontend."""
 
+import os
 from functools import lru_cache
 
 from pydantic import Field, SecretStr
@@ -29,10 +30,18 @@ class Settings(BaseSettings):
     # LLM: OpenAI-compatible адаптер. Без ключа — честный статус «не подключено».
     llm_base_url: str | None = None
     llm_api_key: SecretStr | None = None
-    llm_model: str | None = None
+    llm_model: str | None = None  # интервью, предложения, углубление (E-028)
+    # Модели по ролям (E-028); пусто — используется llm_model
+    llm_model_check: str | None = None  # «Проверить целостность», объяснения лаборатории
+    llm_model_final: str | None = None  # финальная проверка перед активацией
+    # Decisions API (быстрые вероятностные ответы без текста): «светофор», судейство лаборатории
+    decisions_model: str | None = None
     llm_timeout_seconds: float = 60.0
     # response_format=json_object; выключите, если провайдер его не поддерживает
     llm_json_mode: bool = True
+    # Потолок длины ответа: без него JSON может оборваться;
+    # AITUNNEL резервирует оплату именно по нему.
+    llm_max_tokens: int = 8000
 
     # Веб-поиск (провайдер не выбран владельцем — только конфигурация)
     search_provider: str | None = None
@@ -45,6 +54,15 @@ class Settings(BaseSettings):
     redis_url: str = "redis://localhost:6379/0"
 
 
+def model_for(role: str) -> str | None:
+    """Модель для роли: interview | check | final. Неуказанная роль падает на основную модель."""
+    s = get_settings()
+    return {"check": s.llm_model_check, "final": s.llm_model_final}.get(role) or s.llm_model
+
+
 @lru_cache
 def get_settings() -> Settings:
+    # Тесты не должны зависеть от локального .env (там может лежать настоящий ключ LLM).
+    if os.environ.get("APP_ENV") == "test":
+        return Settings(_env_file=None)  # type: ignore[call-arg]
     return Settings()

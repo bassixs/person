@@ -429,3 +429,39 @@ def test_db_guards_original_proposal_and_decisions(client_for, llm):
                 text("UPDATE persona_change_proposals SET status = 'accepted' WHERE id = :i"),
                 {"i": pr["id"]},
             )
+
+
+def test_tolerant_parsing_keeps_good_items():
+    from app.ai.interviewer import ProcessOut, RoundOut
+
+    out = ProcessOut.model_validate(
+        {
+            "proposals": [
+                {"field_path": "legend.occupation", "value": "Механик", "rationale": "x" * 2000},
+                {"field_path": "legend.occupation", "value": None, "rationale": "пустое"},
+                {"field_path": "nope.field", "value": "x", "rationale": "неизвестное поле"},
+            ]
+            + [
+                {"field_path": "character.narrative", "value": f"Текст {i}", "rationale": "годится"}
+                for i in range(20)
+            ],
+            "next_questions": [{"question": "Один вопрос?", "field_paths": ["legend.age_range"]}],
+        }
+    )
+    assert len(out.proposals) == 12  # обрезано до лимита
+    assert len(out.proposals[0].rationale) == 800
+    assert out.next_questions == []  # меньше 3 вопросов — раунд не продолжается
+    rnd = RoundOut.model_validate(
+        {
+            "questions": [
+                {
+                    "question": f"Вопрос номер {i}?",
+                    "why": "w" * 900,
+                    "field_paths": ["legend.age_range", "bad.path"] + ["legend.geography"] * 9,
+                }
+                for i in range(7)
+            ]
+        }
+    )
+    assert len(rnd.questions) == 5 and len(rnd.questions[0].why) == 400
+    assert "bad.path" not in rnd.questions[0].field_paths and len(rnd.questions[0].field_paths) <= 8

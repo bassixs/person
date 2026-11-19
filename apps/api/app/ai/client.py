@@ -50,9 +50,15 @@ class OpenAICompatibleProvider:
         self.model = s.llm_model
         self.timeout = s.llm_timeout_seconds
         self.json_mode = s.llm_json_mode
+        self.max_tokens = s.llm_max_tokens
 
     def complete(self, messages: list[dict[str, str]]) -> Completion:
-        body: dict[str, Any] = {"model": self.model, "messages": messages, "temperature": 0.4}
+        body: dict[str, Any] = {
+            "model": self.model,
+            "messages": messages,
+            "temperature": 0.4,
+            "max_tokens": self.max_tokens,
+        }
         if self.json_mode:
             body["response_format"] = {"type": "json_object"}
         r = httpx.post(
