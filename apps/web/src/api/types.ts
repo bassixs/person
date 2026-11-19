@@ -69,6 +69,67 @@ export interface PersonaDetail extends PersonaListItem {
     can_activate: boolean;
     can_create_version: boolean;
   };
+  pending_proposals: number;
+  ai_configured: boolean;
+}
+
+// ---------- Итерация 2: интервью и предложения ИИ ----------
+
+export type AnswerKind = "answered" | "unknown" | "skipped";
+
+export interface InterviewQuestion {
+  id: string;
+  round_no: number;
+  position: number;
+  question: string;
+  why: string;
+  field_paths: string[];
+  answer_kind: AnswerKind | null;
+  answer_text: string | null;
+  answered_at: string | null;
+}
+
+export interface Interview {
+  id: string;
+  version_id: string;
+  status: "active" | "completed";
+  rounds: number;
+  created_at: string;
+  completed_at: string | null;
+  created_by: UserRef | null;
+  questions: InterviewQuestion[];
+}
+
+export type ProposalStatus = "pending" | "accepted" | "rejected" | "stale";
+
+export interface Proposal {
+  id: string;
+  version_id: string;
+  origin: "interview" | "deepen" | string;
+  interview_session_id: string | null;
+  field_path: string;
+  before_value: string | string[] | null;
+  proposed_value: string | string[];
+  proposed_certainty: "defined" | "hypothesis";
+  rationale: string;
+  related_paths: string[];
+  base_content_hash: string;
+  status: ProposalStatus;
+  edited_value: string | string[] | null;
+  edited_certainty: string | null;
+  decision_note: string | null;
+  stale_reason: string | null;
+  generator: { model?: string; skill?: string; version?: string };
+  created_by: UserRef | null;
+  decided_by: UserRef | null;
+  created_at: string;
+  decided_at: string | null;
+}
+
+export interface DecisionOut {
+  proposal: Proposal;
+  revision: number;
+  content_hash: string;
 }
 
 export type SourceKind = "original_legend" | "editor" | "ai_suggestion";

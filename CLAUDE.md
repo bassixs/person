@@ -49,3 +49,5 @@
 - Неизменяемость активных версий и легенды обеспечена **триггерами БД** (миграция 0001) — новые миграции не должны их ослаблять.
 - Тесты backend — только на реальном PostgreSQL (`TEST_DATABASE_URL`); без Docker — `scripts/dev_postgres.py` (pgserver).
 - Следующий шаг — итерация 2: `persona_change_proposals`, интервью, validation runs, 6 групп лаборатории, активация, v1.1.
+
+**Итерация 2 — в работе (с 2026-11-19).** Сделано: миграция 0002 (`persona_interview_sessions`, `persona_interview_answers`, `persona_change_proposals` с триггером неизменности, `ai_runs`), ИИ-слой `app/ai/` (клиент OpenAI-compatible со строгой схемой и трассой, навык `persona-interviewer`), интервью и очередь предложений (API `routers/persona_ai.py`, UI во вкладках рабочей карточки). Решения E-024…E-027. В тестах модель подменяется `set_provider_override`. Осталось: проверка целостности (validation runs по `content_hash`), лаборатория, отправка на согласование (Q-005), активация, v1.1, очередь Celery.

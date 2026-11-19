@@ -231,3 +231,158 @@ class PersonaSourceMaterial(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
+
+
+# ---------------------------------------------------------------------------
+# Итерация 2: интервью, очередь предложений ИИ, учёт вызовов ИИ
+# ---------------------------------------------------------------------------
+
+
+class InterviewSession(Base):
+    """ИИ-интервью по черновику: адаптивные раунды по 3–5 вопросов (ТЗ §3)."""
+
+    __tablename__ = "persona_interview_sessions"
+    __table_args__ = (
+        CheckConstraint("status IN ('active','completed')", name="interview_status_valid"),
+    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=_uuid)
+    persona_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("personas.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    version_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("persona_versions.id", ondelete="CASCADE"), nullable=False
+    )
+    status: Mapped[str] = mapped_column(String(16), default="active", nullable=False)
+    rounds: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    created_by_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL")
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+    created_by: Mapped[User | None] = relationship(lazy="joined")
+    questions: Mapped[list["InterviewAnswer"]] = relationship(
+        order_by="(InterviewAnswer.round_no, InterviewAnswer.position)",
+        cascade="all, delete-orphan",
+        lazy="selectin",
+    )
+
+
+class InterviewAnswer(Base):
+    """Вопрос интервью и ответ редактора: уточнение внутренней модели, не «реальная биография»."""
+
+    __tablename__ = "persona_interview_answers"
+    __table_args__ = (
+        CheckConstraint(
+            "answer_kind IS NULL OR answer_kind IN ('answered','unknown','skipped')",
+            name="answer_kind_valid",
+        ),
+        UniqueConstraint("session_id", "round_no", "position", name="uq_interview_question"),
+    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=_uuid)
+    session_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("persona_interview_sessions.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    round_no: Mapped[int] = mapped_column(Integer, nullable=False)
+    position: Mapped[int] = mapped_column(Integer, nullable=False)
+    question: Mapped[str] = mapped_column(Text, nullable=False)
+    why: Mapped[str] = mapped_column(Text, default="", nullable=False)
+    field_paths: Mapped[list[str]] = mapped_column(JSONB, default=list, nullable=False)
+    answer_kind: Mapped[str | None] = mapped_column(String(16))
+    answer_text: Mapped[str | None] = mapped_column(Text)
+    answered_by_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL")
+    )
+    answered_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class ChangeProposal(Base):
+    """Предложение ИИ по одному полю или нарративу черновика.
+
+    Исходное предложение (proposed_*) неизменно; правка редактора хранится отдельно (edited_*).
+    В паспорт попадает только через accept: сервер, optimistic lock, аудит.
+    """
+
+    __tablename__ = "persona_change_proposals"
+    __table_args__ = (
+        CheckConstraint(
+            "status IN ('pending','accepted','rejected','stale')", name="proposal_status_valid"
+        ),
+        CheckConstraint(
+            "proposed_certainty IN ('defined','hypothesis')", name="proposal_certainty_valid"
+        ),
+        Index("ix_proposals_version_status", "version_id", "status"),
+    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=_uuid)
+    persona_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("personas.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    version_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("persona_versions.id", ondelete="CASCADE"), nullable=False
+    )
+    origin: Mapped[str] = mapped_column(String(32), nullable=False)  # interview | deepen
+    interview_session_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("persona_interview_sessions.id", ondelete="SET NULL")
+    )
+    # section.field или section.narrative
+    field_path: Mapped[str] = mapped_column(String(64), nullable=False)
+    before_value: Mapped[Any] = mapped_column(JSONB, nullable=True)
+    proposed_value: Mapped[Any] = mapped_column(JSONB, nullable=False)
+    proposed_certainty: Mapped[str] = mapped_column(String(16), nullable=False)
+    rationale: Mapped[str] = mapped_column(Text, default="", nullable=False)
+    related_paths: Mapped[list[str]] = mapped_column(JSONB, default=list, nullable=False)
+    base_content_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    status: Mapped[str] = mapped_column(String(16), default="pending", nullable=False)
+    edited_value: Mapped[Any] = mapped_column(JSONB, nullable=True)
+    edited_certainty: Mapped[str | None] = mapped_column(String(16))
+    decision_note: Mapped[str | None] = mapped_column(Text)
+    stale_reason: Mapped[str | None] = mapped_column(Text)
+    generator: Mapped[dict[str, Any]] = mapped_column(JSONB, default=dict, nullable=False)
+    created_by_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL")
+    )
+    decided_by_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL")
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    decided_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+    created_by: Mapped[User | None] = relationship(lazy="joined", foreign_keys=[created_by_id])
+    decided_by: Mapped[User | None] = relationship(lazy="joined", foreign_keys=[decided_by_id])
+
+
+class AiRun(Base):
+    """Трасса вызова ИИ: навык, модель, статус, токены, задержка, ошибка (учёт расхода, ТЗ §6)."""
+
+    __tablename__ = "ai_runs"
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=_uuid)
+    skill: Mapped[str] = mapped_column(String(64), nullable=False)
+    skill_version: Mapped[str] = mapped_column(String(16), nullable=False)
+    model: Mapped[str | None] = mapped_column(String(128))
+    status: Mapped[str] = mapped_column(String(16), nullable=False)  # ok | error
+    entity_type: Mapped[str | None] = mapped_column(String(64))
+    entity_id: Mapped[str | None] = mapped_column(String(64), index=True)
+    prompt_tokens: Mapped[int | None] = mapped_column(Integer)
+    completion_tokens: Mapped[int | None] = mapped_column(Integer)
+    latency_ms: Mapped[int | None] = mapped_column(Integer)
+    attempts: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
+    error: Mapped[str | None] = mapped_column(Text)
+    created_by_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL")
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False, index=True
+    )

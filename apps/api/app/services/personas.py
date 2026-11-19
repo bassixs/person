@@ -20,6 +20,7 @@ from app.passport import (
     merge_editor_update,
 )
 from app.rbac import Perm
+from app.services.proposals import refresh_stale
 
 
 def visible_persona(db: Session, p: Principal, persona_id: UUID) -> Persona:
@@ -166,6 +167,8 @@ def update_draft(
     if isinstance(name.value, str) and name.value:
         persona.display_name = name.value
     persona.updated_at = datetime.now(UTC)
+    db.flush()
+    stale = refresh_stale(db, version)
     audit.record(
         db,
         actor_id=p.user.id,
@@ -173,7 +176,12 @@ def update_draft(
         entity_type="persona_version",
         entity_id=version.id,
         entity_version=version.label,
-        details={"changed": changed, "content_hash": new_hash, "revision": version.revision},
+        details={
+            "changed": changed,
+            "content_hash": new_hash,
+            "revision": version.revision,
+            "proposals_stale": stale,
+        },
         request=request,
     )
     return version

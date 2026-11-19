@@ -6,10 +6,18 @@ from sqlalchemy import func, or_, select
 
 from app import audit
 from app.activation import activation_blockers
+from app.ai.client import llm_configured
 from app.deps import DB, CurrentUser, Principal
 from app.errors import ApiError, forbidden, not_found
 from app.integrations.llm import llm_status
-from app.models import AuditEvent, Persona, PersonaSourceMaterial, PersonaVersion, User
+from app.models import (
+    AuditEvent,
+    ChangeProposal,
+    Persona,
+    PersonaSourceMaterial,
+    PersonaVersion,
+    User,
+)
 from app.passport import Passport, completeness, schema_document
 from app.rbac import Perm
 from app.routers.system import audit_out
@@ -118,6 +126,17 @@ def _detail(db: DB, persona: Persona, p: Principal) -> PersonaDetail:
             and not has_draft
             and persona.active_version_id is not None,
         ),
+        pending_proposals=(
+            db.scalar(
+                select(func.count())
+                .select_from(ChangeProposal)
+                .where(ChangeProposal.persona_id == persona.id, ChangeProposal.status == "pending")
+            )
+            or 0
+        )
+        if p.has(Perm.PERSONA_READ_ALL)
+        else 0,
+        ai_configured=llm_configured(),
     )
 
 
@@ -176,7 +195,8 @@ def create_persona(body: PersonaCreate, db: DB, p: CurrentUser, request: Request
         raise ApiError(
             501,
             "not_implemented",
-            "Генерация ИИ-черновика паспорта появится в итерации 2 (очередь предложений).",
+            "ИИ-черновик целиком пока не делается: создайте личность из легенды, "
+            "затем используйте интервью и «Предложить углубление».",
         )
     persona = svc.create_persona(
         db,

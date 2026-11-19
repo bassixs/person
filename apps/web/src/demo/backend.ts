@@ -314,6 +314,9 @@ function detail(s: State, u: DUser, p: DPersona): PersonaDetail {
       can_activate: can("persona.activate") && !archived && hasDraft,
       can_create_version: can("persona.edit") && !archived && !hasDraft && !!p.active_version_id,
     },
+    // В демо нет ИИ: интервью и предложения честно недоступны.
+    pending_proposals: 0,
+    ai_configured: false,
   };
 }
 
@@ -633,6 +636,13 @@ export async function demoRequest(method: string, path: string, query: Q, body: 
       requirePerm(u, "persona.read_all");
       const ids = new Set([p.id, ...s.versions.filter((v) => v.persona_id === p.id).map((v) => v.id)]);
       return s.audit.filter((e) => e.entity_id && ids.has(e.entity_id)).map((e) => auditOut(s, e));
+    }
+    // Итерация 2: интервью и предложения. В демо LLM нет — честное «не подключено», пустые списки.
+    if (seg[2] === "interviews" || seg[2] === "proposals") {
+      requirePerm(u, "persona.read_all");
+      if (method === "GET") return [];
+      requirePerm(u, "persona.edit");
+      throw err(503, "llm_not_configured", "ИИ не подключён в демо-версии: интервью и предложения работают на рабочем сервере с LLM-провайдером.");
     }
     if (seg[2] === "activation-check") {
       const v = visibleVersion(s, u, p, String(query.version_id));

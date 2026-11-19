@@ -21,7 +21,6 @@ import { ApiError, get, post, put } from "../api/client";
 import type {
   ActivationCheck,
   AuditEvent,
-  IntegrationStatus,
   Passport,
   PassportField,
   PassportSchema,
@@ -30,6 +29,7 @@ import type {
 } from "../api/types";
 import { useAmbient } from "../components/Ambient";
 import { FieldEditor } from "../components/passport/FieldEditor";
+import { InterviewTab, ProposalsTab } from "../components/persona/AiWork";
 import { EmptyState, ErrorState, Modal, PersonaAvatar, Spinner, StatusBadge } from "../components/ui";
 import { sectionStats } from "../lib/passport";
 import { ACTION_LABEL, fmtDateTime, VERSION_STATE_LABEL } from "../lib/format";
@@ -43,33 +43,63 @@ const TABS: { key: Tab; label: string }[] = [
   { key: "versions", label: "Версии и история" },
 ];
 
-function AiPanel({ llm, legend }: { llm?: IntegrationStatus; legend?: string }) {
-  const connected = llm?.status === "configured";
+function AiPanel({
+  p,
+  sectionTitle,
+  legend,
+  canRun,
+  onDeepen,
+  deepening,
+  deepenError,
+  onOpenProposals,
+}: {
+  p: PersonaDetail;
+  sectionTitle: string;
+  legend?: string;
+  canRun: boolean;
+  onDeepen: () => void;
+  deepening: boolean;
+  deepenError: string | null;
+  onOpenProposals: () => void;
+}) {
   return (
     <div className="space-y-4">
       <div className="panel p-4">
         <div className="flex items-center gap-2 text-sm font-semibold text-fg">
           <Bot className="h-4 w-4 text-accent" /> ИИ-ассистент
         </div>
-        <div className={clsx("mt-3 rounded-ui border px-3 py-2 text-xs", connected ? "border-warning/30 text-warning" : "border-line-strong text-muted")}>
-          {connected
-            ? `Провайдер настроен (${llm?.detail.model ?? "модель не указана"}), соединение не проверено. Предложения и интервью — итерация 2.`
-            : "LLM-провайдер не подключён. ИИ не анализировал этот паспорт — результатов нет."}
-        </div>
-        <div className="mt-4 space-y-2">
-          <div className="flex items-center gap-2 rounded-ui border border-accent/40 bg-accent/10 px-3 py-2 text-sm text-fg">
-            <CheckCircle2 className="h-4 w-4 text-accent" /> Редактировать вручную
+        {!p.ai_configured && (
+          <div className="mt-3 rounded-ui border border-line-strong px-3 py-2 text-xs text-muted">
+            ИИ не подключён: интервью и предложения появятся после настройки LLM-провайдера на сервере.
           </div>
-          <button className="btn-secondary w-full justify-start" disabled title="Итерация 2: очередь предложений ИИ">
-            <Sparkles className="h-4 w-4" /> Предложить углубление
+        )}
+        {p.pending_proposals > 0 && (
+          <button className="mt-3 flex w-full items-center gap-2 rounded-ui border border-accent/40 bg-accent/10 px-3 py-2 text-left text-sm text-fg" onClick={onOpenProposals}>
+            <Sparkles className="h-4 w-4 text-accent" />
+            <span className="flex-1">Ждут решения: {p.pending_proposals}</span>
+            <span className="text-xs text-muted">открыть</span>
           </button>
-          <button className="btn-secondary w-full justify-start" disabled title="Итерация 2: полная проверка согласованности">
+        )}
+        <div className="mt-4 space-y-2">
+          <div className="flex items-center gap-2 rounded-ui border border-line-strong bg-elevated/50 px-3 py-2 text-sm text-fg">
+            <CheckCircle2 className="h-4 w-4 text-success" /> Редактировать вручную
+          </div>
+          <button
+            className="btn-secondary w-full justify-start"
+            disabled={!p.ai_configured || !canRun || deepening}
+            onClick={onDeepen}
+            title={!p.ai_configured ? "ИИ не подключён" : !canRun ? "Доступно для черновика тем, кто правит паспорт" : `ИИ предложит углубление раздела «${sectionTitle}»`}
+          >
+            <Sparkles className="h-4 w-4" /> {deepening ? "ИИ готовит предложения…" : "Предложить углубление"}
+          </button>
+          {deepenError && <p className="text-xs text-danger">{deepenError}</p>}
+          <button className="btn-secondary w-full justify-start" disabled title="Полная проверка согласованности — следующий шаг итерации 2">
             <ShieldCheck className="h-4 w-4" /> Проверить целостность
           </button>
         </div>
         <p className="mt-3 text-xs leading-relaxed text-muted">
-          ИИ никогда не сохраняет изменения напрямую: только предложения с diff «было / станет», которые редактор
-          принимает, правит или отклоняет.
+          ИИ никогда не сохраняет изменения напрямую: только предложения «было / станет», которые вы принимаете,
+          правите или отклоняете.
         </p>
       </div>
       {legend && (
@@ -145,7 +175,6 @@ export function PersonaEditorPage() {
 
   const persona = useQuery({ queryKey: ["persona", id], queryFn: () => get<PersonaDetail>(`/personas/${id}`) });
   const schema = useQuery({ queryKey: ["passport-schema"], queryFn: () => get<PassportSchema>("/personas/schema"), staleTime: Infinity });
-  const integ = useQuery({ queryKey: ["integrations"], queryFn: () => get<IntegrationStatus[]>("/integrations/status") });
   const vid = versionId ?? persona.data?.draft_version?.id ?? persona.data?.active_version?.id ?? persona.data?.versions.at(-1)?.id;
   const version = useQuery({
     queryKey: ["persona-version", vid],
@@ -195,6 +224,15 @@ export function PersonaEditorPage() {
     },
   });
 
+  const deepen = useMutation({
+    mutationFn: (sectionKey: string) => post(`/personas/${id}/proposals/deepen`, { section: sectionKey }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["proposals", id] });
+      qc.invalidateQueries({ queryKey: ["persona", id] });
+      setTab("proposals");
+    },
+  });
+
   const doSave = useCallback(() => {
     if (dirty && !readOnly && !save.isPending) save.mutate();
   }, [dirty, readOnly, save]);
@@ -238,7 +276,6 @@ export function PersonaEditorPage() {
 
   const sch = schema.data;
   const sec = sch.sections.find((s) => s.key === section) ?? sch.sections[0];
-  const llm = integ.data?.find((i) => i.name === "llm");
   const legend = p.source_materials.find((m) => m.kind === "original_legend")?.content;
 
   const updateField = (fkey: string, f: PassportField) => {
@@ -394,6 +431,9 @@ export function PersonaEditorPage() {
             className={clsx("relative whitespace-nowrap px-3 pb-2.5 pt-1 text-sm font-medium", tab === t.key ? "text-fg" : "text-muted hover:text-fg-soft")}
           >
             {t.label}
+            {t.key === "proposals" && p.pending_proposals > 0 && (
+              <span className="ml-1.5 rounded-full bg-accent px-1.5 py-0.5 text-[10px] font-bold text-white">{p.pending_proposals}</span>
+            )}
             {tab === t.key && <span className="absolute inset-x-2 -bottom-px h-0.5 rounded-full bg-accent" />}
           </button>
         ))}
@@ -462,25 +502,23 @@ export function PersonaEditorPage() {
 
           <aside className="hidden xl:block">
             <div className="sticky" style={{ top: "calc(var(--nav-height) + 20px)" }}>
-              <AiPanel llm={llm} legend={legend} />
+              <AiPanel
+                p={p}
+                sectionTitle={sec.title}
+                legend={legend}
+                canRun={p.capabilities.can_edit && v?.state === "draft"}
+                onDeepen={() => deepen.mutate(sec.key)}
+                deepening={deepen.isPending}
+                deepenError={deepen.error ? (deepen.error as ApiError).message : null}
+                onOpenProposals={() => setTab("proposals")}
+              />
             </div>
           </aside>
         </div>
       )}
 
-      {tab === "interview" && (
-        <EmptyState icon={<Bot className="h-8 w-8" />} title="ИИ-интервью">
-          Адаптивные раунды по 3–5 вопросов о значимых пробелах, с возможностью пропустить и завершить раньше. Ответы
-          превращаются только в предложения. Появится в итерации 2;{" "}
-          {llm?.status === "configured" ? "LLM настроен." : "сейчас LLM не подключён."}
-        </EmptyState>
-      )}
-      {tab === "proposals" && (
-        <EmptyState icon={<Sparkles className="h-8 w-8" />} title="Предложений нет">
-          Очередь предложений ИИ (diff «было / станет», причина, затронутые поля, принять / исправить / отклонить)
-          появится в итерации 2. ИИ ничего не изменял в этом паспорте.
-        </EmptyState>
-      )}
+      {tab === "interview" && <InterviewTab persona={p} sch={sch} onProposals={() => setTab("proposals")} />}
+      {tab === "proposals" && <ProposalsTab persona={p} sch={sch} version={v} dirty={dirty} />}
       {tab === "tests" && (
         <EmptyState icon={<FlaskConical className="h-8 w-8" />} title="Тесты не запускались">
           Лаборатория из шести групп: биографическая согласованность, устойчивость характера, границы компетенций,
@@ -543,7 +581,19 @@ export function PersonaEditorPage() {
 
       {/* Drawer для узких экранов */}
       <Modal open={drawer !== null} onOpenChange={(o) => !o && setDrawer(null)} title={drawer === "nav" ? "Разделы паспорта" : "ИИ-ассистент"}>
-        {drawer === "nav" ? SectionNav : <AiPanel llm={llm} legend={legend} />}
+        {drawer === "nav" ? SectionNav : <AiPanel
+                p={p}
+                sectionTitle={sec.title}
+                legend={legend}
+                canRun={p.capabilities.can_edit && v?.state === "draft"}
+                onDeepen={() => deepen.mutate(sec.key)}
+                deepening={deepen.isPending}
+                deepenError={deepen.error ? (deepen.error as ApiError).message : null}
+                onOpenProposals={() => {
+                  setDrawer(null);
+                  setTab("proposals");
+                }}
+              />}
       </Modal>
 
       {v && activateOpen && <ActivationDialog persona={p} version={v} open={activateOpen} onOpenChange={setActivateOpen} />}

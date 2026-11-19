@@ -162,6 +162,8 @@ class PersonaDetail(PersonaListItem):
     versions: list[VersionSummary]
     source_materials: list[SourceMaterialOut]
     capabilities: PersonaCapabilities
+    pending_proposals: int = 0
+    ai_configured: bool = False
 
 
 class VersionDetail(VersionSummary):
@@ -190,3 +192,94 @@ class AuditOut(BaseModel):
     entity_id: str | None
     entity_version: str | None
     details: dict[str, Any]
+
+
+# ---------- Итерация 2: интервью и предложения ----------
+
+
+class InterviewQuestionOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: UUID
+    round_no: int
+    position: int
+    question: str
+    why: str
+    field_paths: list[str]
+    answer_kind: Literal["answered", "unknown", "skipped"] | None
+    answer_text: str | None
+    answered_at: datetime | None
+
+
+class InterviewOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: UUID
+    version_id: UUID
+    status: Literal["active", "completed"]
+    rounds: int
+    created_at: datetime
+    completed_at: datetime | None
+    created_by: UserRef | None
+    questions: list[InterviewQuestionOut]
+
+
+class AnswerItem(BaseModel):
+    question_id: UUID
+    kind: Literal["answered", "unknown", "skipped"]
+    text: str | None = Field(default=None, max_length=4000)
+
+
+class RoundIn(BaseModel):
+    answers: list[AnswerItem] = Field(min_length=1, max_length=10)
+    finish: bool = False
+
+
+class RoundOut(BaseModel):
+    interview: InterviewOut
+    proposals_created: int
+
+
+class ProposalApiOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: UUID
+    version_id: UUID
+    origin: str
+    interview_session_id: UUID | None
+    field_path: str
+    before_value: Any
+    proposed_value: Any
+    proposed_certainty: Literal["defined", "hypothesis"]
+    rationale: str
+    related_paths: list[str]
+    base_content_hash: str
+    status: Literal["pending", "accepted", "rejected", "stale"]
+    edited_value: Any
+    edited_certainty: str | None
+    decision_note: str | None
+    stale_reason: str | None
+    generator: dict[str, Any]
+    created_by: UserRef | None
+    decided_by: UserRef | None
+    created_at: datetime
+    decided_at: datetime | None
+
+
+class AcceptIn(BaseModel):
+    expected_revision: int = Field(ge=1)
+    # Правка редактора перед принятием (исходное предложение сохраняется отдельно)
+    value: str | list[str] | None = None
+    certainty: Literal["defined", "hypothesis"] | None = None
+    note: str | None = Field(default=None, max_length=1000)
+
+
+class RejectIn(BaseModel):
+    note: str | None = Field(default=None, max_length=1000)
+
+
+class DecisionOut(BaseModel):
+    proposal: ProposalApiOut
+    revision: int
+    content_hash: str
+
+
+class DeepenIn(BaseModel):
+    section: str = Field(min_length=1, max_length=32)

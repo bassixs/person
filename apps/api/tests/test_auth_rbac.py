@@ -11,7 +11,7 @@ def test_health_and_ready():
     c = TestClient(create_app())
     assert c.get("/api/v1/health").json() == {"status": "ok"}
     r = c.get("/api/v1/ready")
-    assert r.status_code == 200 and r.json()["migration"] == "0001"
+    assert r.status_code == 200 and r.json()["migration"] == "0002"
 
 
 def test_unauthenticated_is_rejected():

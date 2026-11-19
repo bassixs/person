@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import get_settings
 from app.errors import install_error_handlers
-from app.routers import auth, personas, system, users
+from app.routers import auth, persona_ai, personas, system, users
 
 logger = logging.getLogger("lichnosti.api")
 
@@ -50,7 +50,7 @@ def create_app() -> FastAPI:
         return response
 
     app.include_router(system.health_router, prefix="/api/v1")
-    for r in (auth.router, users.router, personas.router, system.router):
+    for r in (auth.router, users.router, personas.router, persona_ai.router, system.router):
         app.include_router(r, prefix="/api/v1")
     return app
 

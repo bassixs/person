@@ -30,7 +30,9 @@ class Settings(BaseSettings):
     llm_base_url: str | None = None
     llm_api_key: SecretStr | None = None
     llm_model: str | None = None
-    llm_timeout_seconds: float = 30.0
+    llm_timeout_seconds: float = 60.0
+    # response_format=json_object; выключите, если провайдер его не поддерживает
+    llm_json_mode: bool = True
 
     # Веб-поиск (провайдер не выбран владельцем — только конфигурация)
     search_provider: str | None = None

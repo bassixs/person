@@ -60,4 +60,16 @@ describe("демо-backend повторяет правила API", () => {
     await loginAs("editor@demo.local");
     await expect(call("POST", "/personas", { display_name: "X", mode: "ai_draft" })).rejects.toMatchObject({ status: 503, code: "llm_not_configured" });
   });
+
+  it("интервью и предложения в демо: пустые списки и честное «не подключено»", async () => {
+    await loginAs("editor@demo.local");
+    const first = (await call<Page<PersonaListItem>>("GET", "/personas")).items[0]!;
+    const d = await call<{ ai_configured: boolean; pending_proposals: number }>("GET", `/personas/${first.id}`);
+    expect(d.ai_configured).toBe(false);
+    expect(d.pending_proposals).toBe(0);
+    expect(await call("GET", `/personas/${first.id}/proposals`)).toEqual([]);
+    expect(await call("GET", `/personas/${first.id}/interviews`)).toEqual([]);
+    await expect(call("POST", `/personas/${first.id}/interviews`)).rejects.toMatchObject({ status: 503, code: "llm_not_configured" });
+    await expect(call("POST", `/personas/${first.id}/proposals/deepen`, { section: "legend" })).rejects.toMatchObject({ status: 503 });
+  });
 });
