@@ -15,7 +15,7 @@ import {
   ShieldCheck,
   Sparkles,
 } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { Link, useBlocker, useParams } from "react-router-dom";
 import { ApiError, get, post, put } from "../api/client";
 import type {
@@ -30,6 +30,7 @@ import type {
 import { useAmbient } from "../components/Ambient";
 import { FieldEditor } from "../components/passport/FieldEditor";
 import { InterviewTab, ProposalsTab } from "../components/persona/AiWork";
+import { FinalCheckBlock, issuesBySection, latest, SignalChip, useStartValidation, useValidations, ValidationCard } from "../components/persona/Validation";
 import { EmptyState, ErrorState, Modal, PersonaAvatar, Spinner, StatusBadge } from "../components/ui";
 import { sectionStats } from "../lib/passport";
 import { ACTION_LABEL, fmtDateTime, VERSION_STATE_LABEL } from "../lib/format";
@@ -52,6 +53,7 @@ function AiPanel({
   deepening,
   deepenError,
   onOpenProposals,
+  children,
 }: {
   p: PersonaDetail;
   sectionTitle: string;
@@ -61,6 +63,7 @@ function AiPanel({
   deepening: boolean;
   deepenError: string | null;
   onOpenProposals: () => void;
+  children?: ReactNode;
 }) {
   return (
     <div className="space-y-4">
@@ -93,15 +96,13 @@ function AiPanel({
             <Sparkles className="h-4 w-4" /> {deepening ? "ИИ готовит предложения…" : "Предложить углубление"}
           </button>
           {deepenError && <p className="text-xs text-danger">{deepenError}</p>}
-          <button className="btn-secondary w-full justify-start" disabled title="Полная проверка согласованности — следующий шаг итерации 2">
-            <ShieldCheck className="h-4 w-4" /> Проверить целостность
-          </button>
         </div>
         <p className="mt-3 text-xs leading-relaxed text-muted">
           ИИ никогда не сохраняет изменения напрямую: только предложения «было / станет», которые вы принимаете,
           правите или отклоняете.
         </p>
       </div>
+      {children}
       {legend && (
         <div className="panel p-4">
           <div className="label-mono">Исходная легенда · неизменяема</div>
@@ -113,8 +114,10 @@ function AiPanel({
 }
 
 function ActivationDialog({ persona, version, open, onOpenChange }: { persona: PersonaDetail; version: VersionDetail; open: boolean; onOpenChange: (v: boolean) => void }) {
+  const runs = useValidations(persona.id);
+  const fin = latest(runs.data, "final");
   const check = useQuery({
-    queryKey: ["activation-check", version.id, version.content_hash],
+    queryKey: ["activation-check", version.id, version.content_hash, fin?.id, fin?.status],
     queryFn: () => get<ActivationCheck>(`/personas/${persona.id}/activation-check`, { version_id: version.id }),
     enabled: open,
   });
@@ -139,9 +142,10 @@ function ActivationDialog({ persona, version, open, onOpenChange }: { persona: P
           ) : (
             <p className="text-sm text-success">Блокирующих условий нет.</p>
           )}
+          <FinalCheckBlock persona={persona} canRun={persona.capabilities.can_edit && version.state === "draft"} />
           <p className="text-xs text-muted">
-            Проверка согласованности всего паспорта и лаборатория из шести групп появятся в итерации 2. До этого активация
-            невозможна — это честное ограничение, а не ошибка.
+            Лаборатория из шести групп испытаний — следующий шаг итерации 2. До неё активация невозможна — это честное
+            ограничение, а не ошибка.
           </p>
           {act.error && <p className="text-sm text-danger">{(act.error as ApiError).message}</p>}
           <div className="flex justify-end gap-2">
@@ -224,6 +228,8 @@ export function PersonaEditorPage() {
     },
   });
 
+  const validations = useValidations(id);
+  const startCheck = useStartValidation(id);
   const deepen = useMutation({
     mutationFn: (sectionKey: string) => post(`/personas/${id}/proposals/deepen`, { section: sectionKey }),
     onSuccess: () => {
@@ -259,6 +265,8 @@ export function PersonaEditorPage() {
   const blocker = useBlocker(({ currentLocation, nextLocation }) => dirty && currentLocation.pathname !== nextLocation.pathname);
 
   const stats = useMemo(() => (local && schema.data ? sectionStats(local, schema.data) : null), [local, schema.data]);
+  const secIssues = useMemo(() => issuesBySection(latest(validations.data)), [validations.data]);
+  const checkBusy = ["queued", "running"].includes(latest(validations.data)?.status ?? "");
 
   if (persona.isLoading || schema.isLoading)
     return (
@@ -312,6 +320,11 @@ export function PersonaEditorPage() {
           >
             <span className="w-4 font-mono text-[11px] text-muted">{i + 1}</span>
             <span className="flex-1 truncate">{s.title}</span>
+            {(secIssues[s.key] ?? 0) > 0 && (
+              <span className="rounded-full bg-warning/15 px-1.5 text-[10px] font-bold text-warning" title="Замечания актуальной проверки целостности">
+                {`!${secIssues[s.key]}`}
+              </span>
+            )}
             {st && (
               <span className={clsx("font-mono text-[11px]", st.filled === st.total ? "text-success" : "text-muted")} title={`Заполнено ${st.filled} из ${st.total}; гипотез: ${st.hypotheses}`}>
                 {st.filled}/{st.total}
@@ -322,7 +335,7 @@ export function PersonaEditorPage() {
         );
       })}
       <p className="px-2 pt-3 text-[11px] leading-relaxed text-muted">
-        Замечания проверки согласованности появятся здесь после запуска проверки (итерация 2).
+        «!N» — замечания актуальной проверки целостности в разделе. После правок проверку нужно повторить.
       </p>
     </nav>
   );
@@ -361,6 +374,7 @@ export function PersonaEditorPage() {
                   #{v.content_hash.slice(0, 8)} · rev {v.revision}
                 </span>
               )}
+              <SignalChip personaId={id} contentHash={v?.state === "draft" ? v.content_hash : undefined} aiConfigured={p.ai_configured} />
             </div>
           </div>
         </div>
@@ -378,8 +392,13 @@ export function PersonaEditorPage() {
               <GitBranchPlus className="h-4 w-4" /> Новая версия
             </button>
           )}
-          <button className="btn-secondary" disabled title="Полная проверка согласованности — итерация 2">
-            <ShieldCheck className="h-4 w-4" /> Проверить
+          <button
+            className="btn-secondary"
+            disabled={!p.ai_configured || readOnly || dirty || startCheck.isPending || checkBusy}
+            onClick={() => startCheck.mutate("check")}
+            title={!p.ai_configured ? "ИИ не подключён" : dirty ? "Сначала сохраните правки" : "Проверить весь паспорт на противоречия (в фоне)"}
+          >
+            <ShieldCheck className="h-4 w-4" /> {checkBusy ? "Проверка идёт…" : "Проверить"}
           </button>
           <button className="btn-secondary" disabled title="Лаборатория из 6 групп испытаний — итерация 2">
             <FlaskConical className="h-4 w-4" /> Лаборатория
@@ -511,7 +530,15 @@ export function PersonaEditorPage() {
                 deepening={deepen.isPending}
                 deepenError={deepen.error ? (deepen.error as ApiError).message : null}
                 onOpenProposals={() => setTab("proposals")}
-              />
+              >
+                <ValidationCard
+                  persona={p}
+                  sch={sch}
+                  canRun={p.capabilities.can_edit && v?.state === "draft"}
+                  onOpenSection={(k) => setSection(k)}
+                  onOpenProposals={() => setTab("proposals")}
+                />
+              </AiPanel>
             </div>
           </aside>
         </div>
@@ -593,7 +620,21 @@ export function PersonaEditorPage() {
                   setDrawer(null);
                   setTab("proposals");
                 }}
-              />}
+              >
+                <ValidationCard
+                  persona={p}
+                  sch={sch}
+                  canRun={p.capabilities.can_edit && v?.state === "draft"}
+                  onOpenSection={(k) => {
+                    setSection(k);
+                    setDrawer(null);
+                  }}
+                  onOpenProposals={() => {
+                    setDrawer(null);
+                    setTab("proposals");
+                  }}
+                />
+              </AiPanel>}
       </Modal>
 
       {v && activateOpen && <ActivationDialog persona={p} version={v} open={activateOpen} onOpenChange={setActivateOpen} />}

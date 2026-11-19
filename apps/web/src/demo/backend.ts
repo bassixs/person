@@ -638,7 +638,11 @@ export async function demoRequest(method: string, path: string, query: Q, body: 
       return s.audit.filter((e) => e.entity_id && ids.has(e.entity_id)).map((e) => auditOut(s, e));
     }
     // Итерация 2: интервью и предложения. В демо LLM нет — честное «не подключено», пустые списки.
-    if (seg[2] === "interviews" || seg[2] === "proposals") {
+    if (seg[2] === "consistency") {
+      requirePerm(u, "persona.read_all");
+      return { status: "unavailable", level: null, p_conflict: null, severity: null, model: null, content_hash: null };
+    }
+    if (seg[2] === "interviews" || seg[2] === "proposals" || seg[2] === "validations") {
       requirePerm(u, "persona.read_all");
       if (method === "GET") return [];
       requirePerm(u, "persona.edit");

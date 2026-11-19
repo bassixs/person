@@ -71,5 +71,8 @@ describe("демо-backend повторяет правила API", () => {
     expect(await call("GET", `/personas/${first.id}/interviews`)).toEqual([]);
     await expect(call("POST", `/personas/${first.id}/interviews`)).rejects.toMatchObject({ status: 503, code: "llm_not_configured" });
     await expect(call("POST", `/personas/${first.id}/proposals/deepen`, { section: "legend" })).rejects.toMatchObject({ status: 503 });
+    expect(await call("GET", `/personas/${first.id}/validations`)).toEqual([]);
+    await expect(call("POST", `/personas/${first.id}/validations`, { kind: "check" })).rejects.toMatchObject({ status: 503 });
+    expect(await call<{ status: string }>("GET", `/personas/${first.id}/consistency`)).toMatchObject({ status: "unavailable" });
   });
 });

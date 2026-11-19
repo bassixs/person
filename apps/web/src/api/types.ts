@@ -239,3 +239,46 @@ export interface ActivationCheck {
   can_activate_by_role: boolean;
   blockers: { code: string; message: string }[];
 }
+
+// ---------- Итерация 2: проверка целостности и «светофор» ----------
+
+export interface ValidationIssue {
+  id: string;
+  severity: "critical" | "warning" | "info";
+  kind: "contradiction" | "unspecified" | "unusual_compatible";
+  title: string;
+  explanation: string;
+  field_paths: string[];
+  suggestion: string | null;
+  fix_field_path: string | null;
+  fix_value: string | string[] | null;
+  proposal_id: string | null;
+}
+
+export interface ValidationRun {
+  id: string;
+  version_id: string;
+  content_hash: string;
+  kind: "check" | "final";
+  status: "queued" | "running" | "done" | "failed";
+  model: string | null;
+  summary: string | null;
+  critical_count: number;
+  warning_count: number;
+  info_count: number;
+  error: string | null;
+  started_by: UserRef | null;
+  created_at: string;
+  finished_at: string | null;
+  issues: ValidationIssue[];
+  is_current: boolean;
+}
+
+export interface ConsistencySignal {
+  status: "ready" | "pending" | "unavailable";
+  level: "green" | "yellow" | "red" | "unavailable" | "error" | null;
+  p_conflict: number | null;
+  severity: string | null;
+  model: string | null;
+  content_hash: string | null;
+}

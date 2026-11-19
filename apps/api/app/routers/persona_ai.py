@@ -27,6 +27,7 @@ from app.schemas import (
 from app.services import interviews as isvc
 from app.services import personas as psvc
 from app.services import proposals as prsvc
+from app.services.validation import schedule_signal
 
 router = APIRouter(prefix="/personas", tags=["persona-ai"])
 
@@ -172,6 +173,7 @@ def accept(
             db.rollback()
         raise
     db.commit()
+    schedule_signal(version, p.user.id)
     db.refresh(pr)
     return DecisionOut(
         proposal=ProposalApiOut.model_validate(pr),

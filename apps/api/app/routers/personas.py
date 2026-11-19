@@ -39,6 +39,7 @@ from app.schemas import (
     VersionUpdate,
 )
 from app.services import personas as svc
+from app.services.validation import schedule_signal
 
 router = APIRouter(prefix="/personas", tags=["personas"])
 
@@ -289,6 +290,7 @@ def update_version(
     v = svc.visible_version(db, p, persona, version_id)
     svc.update_draft(db, p, persona, v, body.passport, body.expected_revision, request)
     db.commit()
+    schedule_signal(v, p.user.id)  # «светофор» для нового содержимого, в фоне
     return get_version(persona_id, version_id, db, p)
 
 

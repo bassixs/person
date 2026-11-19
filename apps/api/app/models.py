@@ -386,3 +386,117 @@ class AiRun(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False, index=True
     )
+    cost_rub: Mapped[float | None] = mapped_column()
+
+
+# ---------------------------------------------------------------------------
+# Итерация 2: проверка целостности паспорта и «светофор» согласованности
+# ---------------------------------------------------------------------------
+
+
+class ValidationRun(Base):
+    """Полная проверка паспорта ИИ. Действительна только для своего content_hash (ТЗ §3)."""
+
+    __tablename__ = "persona_validation_runs"
+    __table_args__ = (
+        CheckConstraint("kind IN ('check','final')", name="validation_kind_valid"),
+        CheckConstraint(
+            "status IN ('queued','running','done','failed')", name="validation_status_valid"
+        ),
+        Index("ix_validation_version_hash", "version_id", "content_hash"),
+    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=_uuid)
+    persona_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("personas.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    version_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("persona_versions.id", ondelete="CASCADE"), nullable=False
+    )
+    content_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    kind: Mapped[str] = mapped_column(String(16), nullable=False)  # check | final
+    status: Mapped[str] = mapped_column(String(16), default="queued", nullable=False)
+    model: Mapped[str | None] = mapped_column(String(128))
+    summary: Mapped[str | None] = mapped_column(Text)
+    critical_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    warning_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    info_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    error: Mapped[str | None] = mapped_column(Text)
+    started_by_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL")
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+    started_by: Mapped[User | None] = relationship(lazy="joined")
+    issues: Mapped[list["ValidationIssue"]] = relationship(
+        order_by="(ValidationIssue.severity_rank, ValidationIssue.position)",
+        cascade="all, delete-orphan",
+        lazy="selectin",
+    )
+
+
+class ValidationIssue(Base):
+    """Замечание проверки: проблема, поля, серьёзность, аргументация, предложенное исправление."""
+
+    __tablename__ = "persona_validation_issues"
+    __table_args__ = (
+        CheckConstraint("severity IN ('critical','warning','info')", name="issue_severity_valid"),
+        CheckConstraint(
+            "kind IN ('contradiction','unspecified','unusual_compatible')",
+            name="issue_kind_valid",
+        ),
+    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=_uuid)
+    run_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("persona_validation_runs.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    position: Mapped[int] = mapped_column(Integer, nullable=False)
+    severity: Mapped[str] = mapped_column(String(16), nullable=False)
+    severity_rank: Mapped[int] = mapped_column(Integer, nullable=False)  # 0 critical … 2 info
+    kind: Mapped[str] = mapped_column(String(24), nullable=False)
+    title: Mapped[str] = mapped_column(Text, nullable=False)
+    explanation: Mapped[str] = mapped_column(Text, nullable=False)
+    field_paths: Mapped[list[str]] = mapped_column(JSONB, default=list, nullable=False)
+    suggestion: Mapped[str | None] = mapped_column(Text)
+    fix_field_path: Mapped[str | None] = mapped_column(String(64))
+    fix_value: Mapped[Any] = mapped_column(JSONB, nullable=True)
+    proposal_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("persona_change_proposals.id", ondelete="SET NULL")
+    )
+
+
+class ConsistencySignal(Base):
+    """«Светофор» согласованности: быстрый вероятностный ответ Decisions API для content_hash.
+
+    Это подсказка, а не проверка: барьер активации опирается только на ValidationRun(final).
+    """
+
+    __tablename__ = "persona_consistency_signals"
+    __table_args__ = (
+        CheckConstraint(
+            "level IN ('green','yellow','red','unavailable','error')", name="signal_level_valid"
+        ),
+        Index("ix_signal_version_hash", "version_id", "content_hash"),
+    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=_uuid)
+    version_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("persona_versions.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    content_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    level: Mapped[str] = mapped_column(String(16), nullable=False)
+    p_conflict: Mapped[float | None] = mapped_column()
+    severity: Mapped[str | None] = mapped_column(String(16))
+    model: Mapped[str | None] = mapped_column(String(128))
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )

@@ -33,6 +33,7 @@ class Completion:
     model: str
     prompt_tokens: int | None = None
     completion_tokens: int | None = None
+    cost_rub: float | None = None
 
 
 class LlmProvider(Protocol):
@@ -42,12 +43,12 @@ class LlmProvider(Protocol):
 
 
 class OpenAICompatibleProvider:
-    def __init__(self) -> None:
+    def __init__(self, model: str | None = None) -> None:
         s = get_settings()
         assert s.llm_base_url and s.llm_api_key and s.llm_model
         self.base_url = s.llm_base_url.rstrip("/")
         self.key = s.llm_api_key.get_secret_value()
-        self.model = s.llm_model
+        self.model = model or s.llm_model
         self.timeout = s.llm_timeout_seconds
         self.json_mode = s.llm_json_mode
         self.max_tokens = s.llm_max_tokens
@@ -76,6 +77,7 @@ class OpenAICompatibleProvider:
             model=data.get("model") or self.model,
             prompt_tokens=usage.get("prompt_tokens"),
             completion_tokens=usage.get("completion_tokens"),
+            cost_rub=usage.get("cost_rub", usage.get("cost")),
         )
 
 
@@ -95,7 +97,7 @@ def llm_configured() -> bool:
     return bool(s.llm_base_url and s.llm_api_key and s.llm_model)
 
 
-def get_provider() -> LlmProvider:
+def get_provider(model: str | None = None) -> LlmProvider:
     if _override is not None:
         return _override
     if not llm_configured():
@@ -105,7 +107,7 @@ def get_provider() -> LlmProvider:
             "ИИ не подключён: задайте LLM-провайдера на сервере. "
             "Пока можно работать с паспортом вручную.",
         )
-    return OpenAICompatibleProvider()
+    return OpenAICompatibleProvider(model)
 
 
 _FENCE = re.compile(r"^```(?:json)?\s*|\s*```$", re.MULTILINE)
@@ -129,19 +131,21 @@ class SkillCall:
     actor_id: UUID | None
     entity_type: str
     entity_id: str
+    model: str | None = None  # модель роли (E-028); None — основная
     max_attempts: int = 2
     trace: dict[str, Any] = field(default_factory=dict)
 
 
 def run_skill(call: SkillCall, schema: type[T]) -> tuple[T, str]:
     """Вызывает модель и возвращает (валидированный результат, имя модели)."""
-    provider = get_provider()
+    provider = get_provider(call.model)
     messages = [
         {"role": "system", "content": call.system},
         {"role": "user", "content": call.user},
     ]
     started = time.perf_counter()
     prompt_tokens = completion_tokens = 0
+    cost = 0.0
     last_error = ""
     attempts = 0
     model = getattr(provider, "model", None)
@@ -157,6 +161,7 @@ def run_skill(call: SkillCall, schema: type[T]) -> tuple[T, str]:
         model = c.model
         prompt_tokens += c.prompt_tokens or 0
         completion_tokens += c.completion_tokens or 0
+        cost += c.cost_rub or 0.0
         try:
             result = schema.model_validate(_parse_json(c.text))
         except (ValueError, ValidationError) as e:
@@ -170,9 +175,11 @@ def run_skill(call: SkillCall, schema: type[T]) -> tuple[T, str]:
                 },
             ]
             continue
-        _record(call, "ok", model, prompt_tokens, completion_tokens, started, attempts, None)
+        _record(call, "ok", model, prompt_tokens, completion_tokens, started, attempts, None, cost)
         return result, model or ""
-    _record(call, "error", model, prompt_tokens, completion_tokens, started, attempts, last_error)
+    _record(
+        call, "error", model, prompt_tokens, completion_tokens, started, attempts, last_error, cost
+    )
     raise ApiError(
         502,
         "llm_failed",
@@ -190,6 +197,7 @@ def _record(
     started: float,
     attempts: int,
     error: str | None,
+    cost: float = 0.0,
 ) -> None:
     with session_factory()() as db:
         db.add(
@@ -206,6 +214,7 @@ def _record(
                 attempts=max(attempts, 1),
                 error=error,
                 created_by_id=call.actor_id,
+                cost_rub=round(cost, 4) if cost else None,
             )
         )
         db.commit()

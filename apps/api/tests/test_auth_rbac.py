@@ -8,10 +8,20 @@ from tests.conftest import ApiClient
 
 
 def test_health_and_ready():
+    import pathlib
+
+    from alembic.config import Config
+    from alembic.script import ScriptDirectory
+
+    api_dir = pathlib.Path(__file__).resolve().parent.parent
+    cfg = Config(str(api_dir / "alembic.ini"))
+    cfg.set_main_option("script_location", str(api_dir / "alembic"))
+    head = ScriptDirectory.from_config(cfg).get_current_head()
+
     c = TestClient(create_app())
     assert c.get("/api/v1/health").json() == {"status": "ok"}
     r = c.get("/api/v1/ready")
-    assert r.status_code == 200 and r.json()["migration"] == "0002"
+    assert r.status_code == 200 and r.json()["migration"] == head
 
 
 def test_unauthenticated_is_rejected():

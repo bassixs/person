@@ -7,15 +7,17 @@
    без critical-находок;
 4. существует актуальный прогон лаборатории (6 групп) для текущего content_hash без critical.
 
-Пункты 3–4 реализуются в итерации 2 (таблицы persona_validation_runs / persona_test_runs).
-До этого функция честно сообщает, что проверок нет — и активация блокируется на backend.
+Пункт 3 — финальная проверка (ValidationRun kind=final, модель LLM_MODEL_FINAL, E-028) именно для
+текущего content_hash: любая правка после неё делает её неактуальной. «Светофор» Decisions на барьер
+не влияет — это только подсказка. Пункт 4 (лаборатория) — следующий шаг итерации 2.
 """
 
 from dataclasses import dataclass
 
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.models import PersonaVersion
+from app.models import PersonaVersion, ValidationRun
 from app.passport import Passport
 
 
@@ -33,14 +35,32 @@ def activation_blockers(db: Session, version: PersonaVersion) -> list[Blocker]:
     name = passport.sections["legend"].fields["full_name"]
     if name.certainty == "unknown":
         blockers.append(Blocker("missing_required", "Не заполнено обязательное поле «Имя»"))
-    # Итерация 2: искать validation/test runs по version.content_hash.
-    blockers.append(
-        Blocker(
-            "validation_missing",
-            f"Нет актуальной полной проверки согласованности для содержимого "
-            f"{version.content_hash[:12]}",
+    final = db.scalar(
+        select(ValidationRun)
+        .where(
+            ValidationRun.version_id == version.id,
+            ValidationRun.content_hash == version.content_hash,
+            ValidationRun.kind == "final",
+            ValidationRun.status == "done",
         )
+        .order_by(ValidationRun.finished_at.desc())
     )
+    if final is None:
+        blockers.append(
+            Blocker(
+                "validation_missing",
+                "Нет финальной проверки целостности для текущего содержимого "
+                f"{version.content_hash[:12]} (после правок её нужно запустить заново)",
+            )
+        )
+    elif final.critical_count:
+        blockers.append(
+            Blocker(
+                "validation_critical",
+                f"Финальная проверка нашла критические противоречия: {final.critical_count}. "
+                "Исправьте их и запустите проверку снова",
+            )
+        )
     blockers.append(
         Blocker(
             "lab_missing",

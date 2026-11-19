@@ -30,6 +30,10 @@ OpenAPI: `/api/v1/openapi.json`, Swagger UI: `/api/v1/docs`.
 | `POST /personas/{id}/proposals/deepen` | `persona.edit` | `{section}` — ИИ предлагает углубление раздела (паспорт не меняется) |
 | `POST /personas/{id}/proposals/{pid}/accept` | `persona.edit` | `{expected_revision, value?, certainty?, note?}` — принять как есть или с правкой; 409 `revision_conflict` / `proposal_stale` |
 | `POST /personas/{id}/proposals/{pid}/reject` | `persona.edit` | `{note?}` — отклонить (в т.ч. устаревшее) |
+| `GET /personas/{id}/validations`, `GET …/validations/{rid}` | read_all | проверки целостности с замечаниями; `is_current` — относится ли к текущему `content_hash` |
+| `POST /personas/{id}/validations` | `persona.edit` | `{kind: check\|final}` → 202, проверка идёт в фоне; 503 без LLM |
+| `POST /personas/{id}/validations/{rid}/issues/{iid}/propose` | `persona.edit` | исправление из замечания → предложение в очереди |
+| `GET /personas/{id}/consistency` | read_all | «светофор» для текущего черновика: `ready` (green/yellow/red), `pending`, `unavailable` |
 | `GET /overview` | сессия | только реальные данные; модули будущих итераций — `available: false` |
 | `GET /integrations/status`, `POST /integrations/{llm,max}/check` | сессия / admin | статусы и реальная проверка соединения |
 | `GET /audit` | `audit.read` | `entity_id`, `action`, пагинация |

@@ -283,3 +283,54 @@ class DecisionOut(BaseModel):
 
 class DeepenIn(BaseModel):
     section: str = Field(min_length=1, max_length=32)
+
+
+# ---------- Итерация 2: проверка целостности и «светофор» ----------
+
+
+class ValidationIssueOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: UUID
+    severity: Literal["critical", "warning", "info"]
+    kind: Literal["contradiction", "unspecified", "unusual_compatible"]
+    title: str
+    explanation: str
+    field_paths: list[str]
+    suggestion: str | None
+    fix_field_path: str | None
+    fix_value: Any
+    proposal_id: UUID | None
+
+
+class ValidationRunOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: UUID
+    version_id: UUID
+    content_hash: str
+    kind: Literal["check", "final"]
+    status: Literal["queued", "running", "done", "failed"]
+    model: str | None
+    summary: str | None
+    critical_count: int
+    warning_count: int
+    info_count: int
+    error: str | None
+    started_by: UserRef | None
+    created_at: datetime
+    finished_at: datetime | None
+    issues: list[ValidationIssueOut]
+    # Проверка действительна только для того содержимого, которое проверялось.
+    is_current: bool = False
+
+
+class ValidationStartIn(BaseModel):
+    kind: Literal["check", "final"] = "check"
+
+
+class SignalOut(BaseModel):
+    status: Literal["ready", "pending", "unavailable"]
+    level: Literal["green", "yellow", "red", "unavailable", "error"] | None = None
+    p_conflict: float | None = None
+    severity: str | None = None
+    model: str | None = None
+    content_hash: str | None = None
