@@ -1,0 +1,59 @@
+# Боевой стек «Личностей» (E-031): Caddy (HTTPS) → web (nginx + SPA) → api (FastAPI) → postgres.
+# Наружу открыт только Caddy (80/443). Секреты — в .env.prod на сервере (в git не попадает).
+# Запуск на сервере:  docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --build
+# Redis и Celery-воркер не поднимаются: фоновые задачи пока идут внутри API (E-029).
+name: lichnosti
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: lichnosti
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?задайте POSTGRES_PASSWORD в .env.prod}
+      POSTGRES_DB: lichnosti
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lichnosti"]
+      interval: 5s
+      retries: 20
+    shm_size: 128mb
+
+  api:
+    build: { context: ., dockerfile: infra/docker/api.Dockerfile }
+    restart: unless-stopped
+    env_file: .env.prod
+    environment:
+      DATABASE_URL: postgresql+psycopg://lichnosti:${POSTGRES_PASSWORD}@postgres:5432/lichnosti
+      APP_ENV: production
+      COOKIE_SECURE: "true"
+    depends_on:
+      postgres: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request;urllib.request.urlopen('http://localhost:8000/api/v1/ready')"]
+      interval: 10s
+      retries: 12
+      start_period: 20s
+
+  web:
+    build: { context: ., dockerfile: infra/docker/web.Dockerfile }
+    restart: unless-stopped
+    depends_on:
+      api: { condition: service_healthy }
+
+  caddy:
+    image: caddy:2.10-alpine
+    restart: unless-stopped
+    ports: ["80:80", "443:443", "443:443/udp"]
+    environment:
+      SITE_ADDRESS: ${SITE_ADDRESS:?задайте SITE_ADDRESS в .env.prod}
+    volumes:
+      - ./infra/docker/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on: [web]
+
+volumes:
+  pgdata:
+  caddy_data:
+  caddy_config:

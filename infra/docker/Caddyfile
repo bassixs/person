@@ -1,0 +1,18 @@
+# Caddy: автоматический HTTPS (Let's Encrypt) для SITE_ADDRESS и защитные заголовки.
+# Без своего домена используется <ip-с-дефисами>.sslip.io — он резолвится в IP сервера (E-031).
+{$SITE_ADDRESS} {
+	encode zstd gzip
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+	}
+	reverse_proxy web:80
+}
+
+# Обращение по голому IP или http — на основной адрес.
+:80 {
+	redir https://{$SITE_ADDRESS}{uri} permanent
+}

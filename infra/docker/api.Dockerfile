@@ -8,4 +8,6 @@ COPY apps/worker/worker /app/worker
 RUN useradd --create-home appuser
 USER appuser
 EXPOSE 8000
-CMD ["sh", "-c", "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000 --proxy-headers"]
+# API доступен только из внутренней сети Docker (за nginx и Caddy), поэтому доверяем X-Forwarded-For —
+# иначе ограничение попыток входа считалось бы общим для всех посетителей.
+CMD ["sh", "-c", "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000 --proxy-headers --forwarded-allow-ips '*'"]
