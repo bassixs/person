@@ -34,11 +34,14 @@ apt-get update -q >/dev/null
 apt-get install -y -q ca-certificates curl gnupg ufw fail2ban unattended-upgrades >/dev/null
 dpkg-reconfigure -f noninteractive unattended-upgrades >/dev/null
 
-log "5. SSH: только по ключам (вход по паролю отключён)"
-cat > /etc/ssh/sshd_config.d/00-lichnosti.conf <<'EOF'
-PasswordAuthentication no
+# По решению владельца вход по паролю оставлен (E-031); SSH_PASSWORD_LOGIN=no — только ключи.
+SSH_PASSWORD_LOGIN=${SSH_PASSWORD_LOGIN:-yes}
+log "5. SSH: ключи + пароль=${SSH_PASSWORD_LOGIN} (fail2ban ниже)"
+if [ "$SSH_PASSWORD_LOGIN" = "yes" ]; then PW=yes; ROOT=yes; else PW=no; ROOT=prohibit-password; fi
+cat > /etc/ssh/sshd_config.d/00-lichnosti.conf <<EOF
+PasswordAuthentication $PW
 KbdInteractiveAuthentication no
-PermitRootLogin prohibit-password
+PermitRootLogin $ROOT
 PubkeyAuthentication yes
 EOF
 sshd -t
