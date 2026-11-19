@@ -2,6 +2,7 @@
 # Ежедневный дамп PostgreSQL «Личностей» (cron на сервере). Хранится 14 последних дней.
 # Восстановление: gunzip -c FILE.sql.gz | docker compose -f docker-compose.prod.yml --env-file .env.prod exec -T postgres psql -U lichnosti lichnosti
 set -euo pipefail
+umask 077  # в дампе хэши паролей — читать может только root
 APP=/opt/lichnosti
 DIR=${BACKUP_DIR:-/var/backups/lichnosti}
 KEEP_DAYS=${KEEP_DAYS:-14}

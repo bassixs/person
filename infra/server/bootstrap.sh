@@ -84,8 +84,13 @@ if ! command -v docker >/dev/null; then
   apt-get update -q >/dev/null
   apt-get install -y -q docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin >/dev/null
 fi
+# Docker Hub ограничивает анонимные загрузки (429) — тянем через зеркала (хостинг, затем Google).
 cat > /etc/docker/daemon.json <<'EOF'
-{ "log-driver": "json-file", "log-opts": { "max-size": "20m", "max-file": "3" } }
+{
+  "registry-mirrors": ["https://dockerhub.timeweb.cloud", "https://mirror.gcr.io"],
+  "log-driver": "json-file",
+  "log-opts": { "max-size": "20m", "max-file": "3" }
+}
 EOF
 systemctl enable --now docker >/dev/null
 systemctl restart docker

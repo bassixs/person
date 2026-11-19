@@ -9,6 +9,8 @@
 Продуктовый контекст: [`docs/PROJECT_CONTEXT.md`](docs/PROJECT_CONTEXT.md) · ТЗ: [`LICHNOSTI_Claude_Code_TZ.md`](LICHNOSTI_Claude_Code_TZ.md) ·
 решения реализации: [`docs/DECISIONS.md`](docs/DECISIONS.md) · правила разработки: [`CLAUDE.md`](CLAUDE.md).
 
+**Рабочая система:** https://82-97-249-112.sslip.io — боевой сервер с HTTPS, PostgreSQL и ИИ (см. `docs/deployment.md`, E-031).
+
 **Демо-версия (только интерфейс):** https://bassixs.github.io/person/ — данные хранятся лишь в вашем браузере,
 сервера и общей базы нет. Это витрина интерфейса, а не рабочая система (см. `docs/DECISIONS.md`, E-017).
 
