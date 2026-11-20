@@ -81,23 +81,35 @@ def check_url(url: str) -> tuple[str, int]:
     return host, port
 
 
-def resolve_public(host: str, port: int) -> str:
+def resolve_public_all(host: str, port: int) -> list[str]:
+    """Все адреса имени (сначала IPv4); если хоть один непубличный — запрет."""
     try:
         infos = socket.getaddrinfo(host, port, type=socket.SOCK_STREAM)
     except socket.gaierror as e:
         raise FetchFailed(f"Не удалось найти адрес сайта: {host}") from e
-    ips = sorted({str(i[4][0]) for i in infos})
+    ips = list(dict.fromkeys(str(i[4][0]) for i in infos))
     if not ips:
         raise FetchFailed(f"Не удалось найти адрес сайта: {host}")
     if any(not _ip_allowed(ip) for ip in ips):
         raise FetchBlocked("Адрес сайта указывает во внутреннюю сеть — запрещено")
-    return ips[0]
+    # Сервер может не иметь IPv6 (контейнер) — IPv4 пробуем первым.
+    return sorted(ips, key=lambda ip: ipaddress.ip_address(ip).version)
+
+
+def resolve_public(host: str, port: int) -> str:
+    return resolve_public_all(host, port)[0]
 
 
 class _SafeBackend(httpcore.SyncBackend):
     def connect_tcp(self, host, port, timeout=None, local_address=None, socket_options=None):  # type: ignore[no-untyped-def]
-        ip = resolve_public(host, port)
-        return super().connect_tcp(ip, port, timeout, local_address, socket_options)
+        last: Exception | None = None
+        for ip in resolve_public_all(host, port):
+            try:
+                return super().connect_tcp(ip, port, timeout, local_address, socket_options)
+            except (httpcore.ConnectError, httpcore.ConnectTimeout) as e:
+                last = e
+        assert last is not None
+        raise last
 
 
 def _client(timeout: float) -> httpx.Client:

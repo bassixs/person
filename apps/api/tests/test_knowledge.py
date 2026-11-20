@@ -281,3 +281,15 @@ def test_sources_registry_and_check(client_for, no_net):
     with pytest.raises(DBAPIError):
         with get_engine().begin() as c:
             c.execute(text("DELETE FROM source_fetches WHERE source_id = :i"), {"i": s["id"]})
+
+
+def test_ipv4_tried_first(monkeypatch):
+    monkeypatch.setattr(
+        socket,
+        "getaddrinfo",
+        lambda *a, **k: [
+            (socket.AF_INET6, 1, 6, "", ("2a06:98c1:3122:8000::", 443, 0, 0)),
+            (socket.AF_INET, 1, 6, "", ("8.47.69.0", 443)),
+        ],
+    )
+    assert resolve_public("example.org", 443) == "8.47.69.0"
