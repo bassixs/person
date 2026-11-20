@@ -325,3 +325,141 @@ export interface LabOverview {
   runs: LabRun[];
   baseline: LabRun | null;
 }
+
+// ---------- итерация 3: темы ----------
+
+export type TopicStatus = "draft" | "under_review" | "active" | "needs_update" | "suspended" | "archived";
+export type ClaimStatus = "unverified" | "verified" | "disputed" | "refuted" | "stale";
+export type ClaimKind = "operational" | "stable";
+
+export interface ClaimSource {
+  title: string;
+  url: string | null;
+  quote: string | null;
+  location: string | null;
+  knowledge_item_id?: string | null;
+}
+
+export interface Claim {
+  id: string;
+  text: string;
+  status: ClaimStatus;
+  kind: ClaimKind;
+  event_date: string | null;
+  published_at: string | null;
+  checked_at: string | null;
+  valid_from: string | null;
+  valid_until: string | null;
+  sources: ClaimSource[];
+  origin: "editor" | "ai_suggestion" | "monitoring" | "task";
+  note: string;
+}
+
+export interface Dossier {
+  summary: string;
+  background: string;
+  territory: string;
+  timeframe: string;
+  participants: string[];
+  claims: Claim[];
+  residents_questions: string[];
+  faq: { question: string; answer: string }[];
+  unknowns: string[];
+  conflicts: string[];
+}
+
+export interface TopicVersionRef {
+  id: string;
+  label: string;
+  state: string;
+  content_hash: string;
+  revision: number;
+}
+
+export interface ClaimFlag {
+  id: string;
+  claim_id: string;
+  version_id: string;
+  flag: "refuted" | "disputed" | "stale" | "cleared";
+  reason: string;
+  origin: string;
+  created_by: UserRef | null;
+  created_at: string;
+}
+
+export interface TopicListItem {
+  id: string;
+  title: string;
+  geography: string;
+  category: string;
+  status: TopicStatus;
+  creation_mode: string;
+  active_version: TopicVersionRef | null;
+  draft_version: TopicVersionRef | null;
+  counts: { claims: number; verified: number; unsafe: number; open_questions: number } | null;
+  created_by: UserRef | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TopicVersionSummary {
+  id: string;
+  label: string;
+  state: string;
+  content_hash: string;
+  change_note: string;
+  created_by: UserRef | null;
+  approved_by: UserRef | null;
+  created_at: string;
+  approved_at: string | null;
+}
+
+export interface TopicDetail extends TopicListItem {
+  versions: TopicVersionSummary[];
+  capabilities: {
+    can_edit: boolean;
+    can_submit: boolean;
+    can_activate: boolean;
+    can_archive: boolean;
+    can_flag: boolean;
+    can_verify_claims: boolean;
+  };
+  flags: ClaimFlag[];
+}
+
+export interface EffectiveClaim {
+  id: string;
+  effective_status: ClaimStatus;
+  safe_to_use: boolean;
+  flag: ClaimFlag | null;
+}
+
+export interface TopicVersionDetail extends TopicVersionSummary {
+  topic_id: string;
+  revision: number;
+  schema_version: number;
+  dossier: Dossier;
+  claims_effective: EffectiveClaim[];
+  updated_by: UserRef | null;
+  updated_at: string;
+}
+
+export interface TopicCheck {
+  version_id: string;
+  content_hash: string;
+  blockers: { code: string; message: string }[];
+  warnings: { code: string; message: string }[];
+}
+
+export interface ClaimHistoryEntry {
+  kind: "version" | "flag";
+  at: string;
+  version_label: string | null;
+  version_state: string | null;
+  text: string | null;
+  status: ClaimStatus | null;
+  valid_until: string | null;
+  flag: string | null;
+  reason: string | null;
+  actor: UserRef | null;
+}

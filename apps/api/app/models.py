@@ -580,3 +580,137 @@ class LabResult(Base):
     confidence: Mapped[float | None] = mapped_column()
     explanation: Mapped[str | None] = mapped_column(Text)
     suggestion: Mapped[str | None] = mapped_column(Text)
+
+
+# ---------- итерация 3: темы ----------
+
+TOPIC_STATUSES = ("draft", "under_review", "active", "needs_update", "suspended", "archived")
+
+
+class Topic(TimestampMixin, Base):
+    """Досье реального события/вопроса (PROJECT_CONTEXT §8). Содержимое — в версиях."""
+
+    __tablename__ = "topics"
+    __table_args__ = (
+        CheckConstraint(
+            "status IN ('draft','under_review','active','needs_update','suspended','archived')",
+            name="status_valid",
+        ),
+        CheckConstraint("creation_mode IN ('manual','ai_suggestion')", name="mode_valid"),
+    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=_uuid)
+    title: Mapped[str] = mapped_column(String(300), nullable=False)
+    geography: Mapped[str] = mapped_column(String(300), default="", nullable=False)
+    category: Mapped[str] = mapped_column(String(100), default="", nullable=False, index=True)
+    status: Mapped[str] = mapped_column(String(32), default="draft", nullable=False, index=True)
+    status_before_archive: Mapped[str | None] = mapped_column(String(32))
+    creation_mode: Mapped[str] = mapped_column(String(32), default="manual", nullable=False)
+    active_version_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("topic_versions.id", use_alter=True, name="fk_topics_active_version"),
+    )
+    created_by_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL")
+    )
+    archived_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+    created_by: Mapped[User | None] = relationship(lazy="joined", foreign_keys=[created_by_id])
+    versions: Mapped[list["TopicVersion"]] = relationship(
+        back_populates="topic",
+        foreign_keys="TopicVersion.topic_id",
+        order_by="(TopicVersion.version_major, TopicVersion.version_minor)",
+    )
+
+
+class TopicVersion(Base):
+    """Версия досье. Не-draft версия неизменна (триггер в миграции 0005)."""
+
+    __tablename__ = "topic_versions"
+    __table_args__ = (
+        UniqueConstraint("topic_id", "version_major", "version_minor", name="uq_topic_version"),
+        CheckConstraint("state IN ('draft','active','superseded','suspended')", name="state_valid"),
+        Index(
+            "uq_topic_one_draft",
+            "topic_id",
+            unique=True,
+            postgresql_where=text("state = 'draft'"),
+        ),
+        Index(
+            "uq_topic_one_active",
+            "topic_id",
+            unique=True,
+            postgresql_where=text("state = 'active'"),
+        ),
+    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=_uuid)
+    topic_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("topics.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    version_major: Mapped[int] = mapped_column(Integer, nullable=False)
+    version_minor: Mapped[int] = mapped_column(Integer, nullable=False)
+    state: Mapped[str] = mapped_column(String(16), default="draft", nullable=False)
+    schema_version: Mapped[int] = mapped_column(Integer, nullable=False)
+    dossier: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
+    content_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    revision: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
+    based_on_version_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("topic_versions.id")
+    )
+    change_note: Mapped[str] = mapped_column(Text, default="", nullable=False)
+    created_by_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL")
+    )
+    updated_by_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL")
+    )
+    approved_by_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL")
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    approved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+    topic: Mapped[Topic] = relationship(back_populates="versions", foreign_keys=[topic_id])
+    created_by: Mapped[User | None] = relationship(lazy="joined", foreign_keys=[created_by_id])
+    updated_by: Mapped[User | None] = relationship(lazy="joined", foreign_keys=[updated_by_id])
+    approved_by: Mapped[User | None] = relationship(lazy="joined", foreign_keys=[approved_by_id])
+
+    @property
+    def label(self) -> str:
+        return f"{self.version_major}.{self.version_minor}"
+
+
+class TopicClaimFlag(Base):
+    """Срочная пометка утверждения активной версии (§8.5): «не использовать как подтверждённое».
+
+    Журнал только на добавление (триггер): текущее состояние — последняя запись по claim_id.
+    Снятие пометки — новая запись `flag = 'cleared'`.
+    """
+
+    __tablename__ = "topic_claim_flags"
+    __table_args__ = (
+        CheckConstraint("flag IN ('refuted','disputed','stale','cleared')", name="flag_valid"),
+        Index("ix_topic_claim_flags_claim", "topic_id", "claim_id", "created_at"),
+    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=_uuid)
+    topic_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("topics.id", ondelete="CASCADE"), nullable=False
+    )
+    version_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("topic_versions.id", ondelete="CASCADE"), nullable=False
+    )
+    claim_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    flag: Mapped[str] = mapped_column(String(16), nullable=False)
+    reason: Mapped[str] = mapped_column(Text, nullable=False)
+    origin: Mapped[str] = mapped_column(String(32), default="editor", nullable=False)
+    created_by_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL")
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    created_by: Mapped[User | None] = relationship(lazy="joined", foreign_keys=[created_by_id])

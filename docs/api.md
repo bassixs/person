@@ -38,6 +38,15 @@ OpenAPI: `/api/v1/openapi.json`, Swagger UI: `/api/v1/docs`.
 | `POST /personas/{id}/lab/runs`, `GET …/lab/runs/{rid}` | `persona.edit` / read_all | прогон лаборатории (202, в фоне); вердикты pass/warning/critical с объяснениями |
 | `POST /personas/{id}/submit` | `persona.edit` | `{version_id}` → на согласование; 409 `validation_required` / `validation_critical` |
 | `POST /personas/{id}/versions/{vid}/suspend` | `persona.activate` (editor) | `{reason}` — экстренная приостановка активной версии |
+| `GET /topics` | `topic.read_*` | каталог тем: `q`, `status`, `category`, `geography`; оператор видит только темы с активной версией |
+| `POST /topics`, `PATCH /topics/{id}` | `topic.create` / `topic.edit` | создать (черновик досье v1.0), изменить название, географию, категорию |
+| `GET /topics/{id}`, `GET …/versions/{vid}` | `topic.read_*` | досье, утверждения и их фактический статус (`claims_effective`: пометка и истёкший срок учитываются) |
+| `PUT /topics/{id}/versions/{vid}` | `topic.edit` | `{dossier, expected_revision}` → правка черновика; `verified`/`refuted` ставит только редактор, `verified` — только с источником (422 `claim_source_required`) |
+| `POST /topics/{id}/versions` | `topic.edit` | новый черновик от активной версии |
+| `POST /topics/{id}/submit`, `GET …/activation-check`, `POST …/activate` | `topic.edit` / read / `topic.approve` | согласование и утверждение темы; 409 `activation_blocked` |
+| `POST /topics/{id}/versions/{vid}/suspend` | `topic.approve` | `{reason}` — приостановка темы |
+| `POST /topics/{id}/claim-flags` | `topic.approve` | `{claim_id, flag: refuted\|disputed\|stale\|cleared, reason}` — срочная пометка утверждения активной версии |
+| `GET /topics/{id}/claims/{cid}/history`, `GET /topics/{id}/history` | read | история утверждения по версиям и пометкам; журнал темы |
 | `GET /overview` | сессия | только реальные данные; модули будущих итераций — `available: false` |
 | `GET /integrations/status`, `POST /integrations/{llm,max}/check` | сессия / admin | статусы и реальная проверка соединения |
 | `GET /audit` | `audit.read` | `entity_id`, `action`, пагинация |

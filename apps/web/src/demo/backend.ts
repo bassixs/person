@@ -519,6 +519,12 @@ export async function demoRequest(method: string, path: string, query: Q, body: 
     return { items: rows.slice((page - 1) * size, page * size).map((e) => auditOut(s, e)), total: rows.length, page, page_size: size };
   }
 
+  // --- темы: в демо-версии только пустой каталог (досье хранится в общей БД сервера) ---
+  if (seg[0] === "topics") {
+    if (seg.length === 1 && method === "GET") return { items: [], total: 0, page: 1, page_size: 50 };
+    throw err(503, "demo_unavailable", "Темы работают на рабочем сервере: в демо-версии досье не хранятся.");
+  }
+
   // --- users ---
   if (seg[0] === "users") {
     requirePerm(u, "users.manage");

@@ -22,9 +22,15 @@
         "--prefix",
         "apps/web",
         "run",
-        "dev"
+        "dev",
+        "--",
+        "--port",
+        "5180",
+        "--strictPort",
+        "--host",
+        "127.0.0.1"
       ],
-      "port": 5173
+      "port": 5180
     },
     {
       "name": "web-demo",

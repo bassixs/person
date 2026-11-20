@@ -16,6 +16,12 @@ class Perm(StrEnum):
     PERSONA_EDIT = "persona.edit"
     PERSONA_ARCHIVE = "persona.archive"
     PERSONA_ACTIVATE = "persona.activate"
+    TOPIC_READ_ALL = "topic.read_all"  # черновики тем и все версии
+    TOPIC_READ_ACTIVE = "topic.read_active"
+    TOPIC_CREATE = "topic.create"
+    TOPIC_EDIT = "topic.edit"
+    TOPIC_ARCHIVE = "topic.archive"
+    TOPIC_APPROVE = "topic.approve"  # утвердить тему, подтвердить/опровергнуть факт, пометки
     USERS_MANAGE = "users.manage"
     AUDIT_READ = "audit.read"
     INTEGRATIONS_DIAGNOSE = "integrations.diagnose"
@@ -24,6 +30,7 @@ class Perm(StrEnum):
 ROLE_PERMS: dict[str, set[Perm]] = {
     "admin": {
         Perm.PERSONA_READ_ALL,
+        Perm.TOPIC_READ_ALL,
         Perm.USERS_MANAGE,
         Perm.AUDIT_READ,
         Perm.INTEGRATIONS_DIAGNOSE,
@@ -35,6 +42,12 @@ ROLE_PERMS: dict[str, set[Perm]] = {
         Perm.PERSONA_EDIT,
         Perm.PERSONA_ARCHIVE,
         Perm.PERSONA_ACTIVATE,
+        Perm.TOPIC_READ_ALL,
+        Perm.TOPIC_READ_ACTIVE,
+        Perm.TOPIC_CREATE,
+        Perm.TOPIC_EDIT,
+        Perm.TOPIC_ARCHIVE,
+        Perm.TOPIC_APPROVE,
         Perm.AUDIT_READ,
     },
     "author": {
@@ -42,8 +55,12 @@ ROLE_PERMS: dict[str, set[Perm]] = {
         Perm.PERSONA_READ_ACTIVE,
         Perm.PERSONA_CREATE,
         Perm.PERSONA_EDIT,
+        Perm.TOPIC_READ_ALL,
+        Perm.TOPIC_READ_ACTIVE,
+        Perm.TOPIC_CREATE,
+        Perm.TOPIC_EDIT,
     },
-    "operator": {Perm.PERSONA_READ_ACTIVE},
+    "operator": {Perm.PERSONA_READ_ACTIVE, Perm.TOPIC_READ_ACTIVE},
 }
 
 

@@ -45,7 +45,8 @@ def _clean():
         conn.execute(
             text(
                 "TRUNCATE audit_events, user_sessions, user_roles, users, "
-                "persona_source_materials, persona_versions, personas CASCADE"
+                "persona_source_materials, persona_versions, personas, topic_claim_flags, "
+                "topic_versions, topics CASCADE"
             )
         )
     login_limiter._hits.clear()

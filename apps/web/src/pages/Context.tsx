@@ -1,7 +1,9 @@
-import { BookOpen, Database, Globe, Radar } from "lucide-react";
+import { Database, Globe, Radar } from "lucide-react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { useAmbient } from "../components/Ambient";
+import { TopicsCatalog } from "../components/topic/TopicsCatalog";
 import { EmptyState, LocalTabs, PageHeader } from "../components/ui";
+import { TopicEditorPage } from "./TopicEditor";
 
 export function ContextPage() {
   useAmbient("low");
@@ -22,15 +24,8 @@ export function ContextPage() {
       />
       <Routes>
         <Route index element={<Navigate to="topics" replace />} />
-        <Route
-          path="topics"
-          element={
-            <EmptyState icon={<BookOpen className="h-8 w-8" />} title="Темы появятся в итерации 3">
-              Досье событий с версиями, карточкой понимания (суть, факты, вопросы, конфликты, пробелы), claims с
-              источниками и редакторским утверждением. Создание вручную или из предложения ИИ в задании.
-            </EmptyState>
-          }
-        />
+        <Route path="topics" element={<TopicsCatalog />} />
+        <Route path="topics/:id" element={<TopicEditorPage />} />
         <Route
           path="knowledge"
           element={

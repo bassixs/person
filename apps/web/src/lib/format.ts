@@ -64,6 +64,18 @@ export const ACTION_LABEL: Record<string, string> = {
   "persona.lab_done": "прогон лаборатории завершён",
   "persona.submit": "отправил(а) на согласование",
   "persona.suspend": "приостановил(а) версию",
+  "topic.create": "создал(а) тему",
+  "topic.update": "сохранил(а) досье",
+  "topic.meta_update": "изменил(а) название или атрибуты",
+  "topic.version_create": "создал(а) новую версию досье",
+  "topic.submit": "отправил(а) тему на согласование",
+  "topic.activate": "утвердил(а) тему",
+  "topic.activate_rejected": "попытка утверждения отклонена",
+  "topic.suspend": "приостановил(а) тему",
+  "topic.claim_flag": "пометил(а) утверждение",
+  "topic.claim_unflag": "снял(а) пометку с утверждения",
+  "topic.archive": "отправил(а) тему в архив",
+  "topic.unarchive": "вернул(а) тему из архива",
   "auth.login": "вошёл(ла) в систему",
   "auth.logout": "вышел(ла) из системы",
   "auth.login_failed": "неудачная попытка входа",
@@ -87,3 +99,20 @@ export function plural(n: number, one: string, few: string, many: string) {
   if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return few;
   return many;
 }
+
+export const TOPIC_STATUS_LABEL: Record<string, string> = {
+  draft: "Черновик",
+  under_review: "На согласовании",
+  active: "Активна",
+  needs_update: "Нужна проверка",
+  suspended: "Приостановлена",
+  archived: "Архив",
+};
+
+export const CLAIM_STATUS_LABEL: Record<string, string> = {
+  unverified: "не проверено",
+  verified: "подтверждено",
+  disputed: "спорно",
+  refuted: "опровергнуто",
+  stale: "устарело",
+};
