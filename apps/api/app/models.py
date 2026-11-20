@@ -6,23 +6,26 @@
 """
 
 import uuid
-from datetime import datetime
+from datetime import date, datetime
 from typing import Any
 
 from sqlalchemy import (
     Boolean,
     CheckConstraint,
+    Computed,
+    Date,
     DateTime,
     ForeignKey,
     Index,
     Integer,
+    LargeBinary,
     String,
     Text,
     UniqueConstraint,
     func,
     text,
 )
-from sqlalchemy.dialects.postgresql import JSONB, UUID
+from sqlalchemy.dialects.postgresql import JSONB, TSVECTOR, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db import Base
@@ -714,3 +717,159 @@ class TopicClaimFlag(Base):
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
     created_by: Mapped[User | None] = relationship(lazy="joined", foreign_keys=[created_by_id])
+
+
+# ---------- итерация 3: источники и база знаний ----------
+
+SOURCE_KINDS = ("official", "media", "rss", "api", "community", "file", "other")
+
+
+class Source(TimestampMixin, Base):
+    """Реестр источников (PROJECT_CONTEXT §9.3). Приоритет не заменяет проверку достоверности."""
+
+    __tablename__ = "source_registry"
+    __table_args__ = (
+        CheckConstraint(
+            "kind IN ('official','media','rss','api','community','file','other')", name="kind_valid"
+        ),
+        CheckConstraint("access_method IN ('manual','web','rss','api')", name="method_valid"),
+        CheckConstraint("check_interval IN ('none','4h','daily','weekly')", name="interval_valid"),
+        CheckConstraint("status IN ('active','disabled')", name="status_valid"),
+        CheckConstraint("priority BETWEEN 1 AND 5", name="priority_valid"),
+    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=_uuid)
+    name: Mapped[str] = mapped_column(String(300), nullable=False)
+    url: Mapped[str | None] = mapped_column(String(2000))
+    kind: Mapped[str] = mapped_column(String(16), default="other", nullable=False)
+    geography: Mapped[str] = mapped_column(String(300), default="", nullable=False)
+    topics: Mapped[str] = mapped_column(String(1000), default="", nullable=False)
+    access_method: Mapped[str] = mapped_column(String(16), default="manual", nullable=False)
+    access_notes: Mapped[str] = mapped_column(Text, default="", nullable=False)
+    priority: Mapped[int] = mapped_column(Integer, default=3, nullable=False)
+    check_interval: Mapped[str] = mapped_column(String(16), default="none", nullable=False)
+    status: Mapped[str] = mapped_column(String(16), default="active", nullable=False, index=True)
+    last_checked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    last_ok_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    last_error: Mapped[str | None] = mapped_column(Text)
+    created_by_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL")
+    )
+    created_by: Mapped[User | None] = relationship(lazy="joined", foreign_keys=[created_by_id])
+
+
+class SourceFetch(Base):
+    """Журнал обращений к источнику (только добавление): проверки соединения и импорты."""
+
+    __tablename__ = "source_fetches"
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=_uuid)
+    source_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("source_registry.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    purpose: Mapped[str] = mapped_column(String(16), default="check", nullable=False)
+    ok: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    http_status: Mapped[int | None] = mapped_column(Integer)
+    final_url: Mapped[str | None] = mapped_column(String(2000))
+    bytes: Mapped[int | None] = mapped_column(Integer)
+    duration_ms: Mapped[int | None] = mapped_column(Integer)
+    error: Mapped[str | None] = mapped_column(Text)
+    knowledge_item_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
+    actor_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL")
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+
+class StoredFile(Base):
+    """Исходный файл (адаптер хранения «db», E-035). Содержимое неизменно."""
+
+    __tablename__ = "stored_files"
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=_uuid)
+    sha256: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    size_bytes: Mapped[int] = mapped_column(Integer, nullable=False)
+    mime: Mapped[str] = mapped_column(String(200), nullable=False)
+    data: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+
+class KnowledgeItem(Base):
+    """Материал базы знаний: документ, страница или текст. Материал — не утверждённый факт."""
+
+    __tablename__ = "knowledge_items"
+    __table_args__ = (
+        CheckConstraint("kind IN ('file','url','text')", name="kind_valid"),
+        CheckConstraint("layer IN ('global','topic')", name="layer_valid"),
+        CheckConstraint(
+            "extraction_status IN ('ok','partial','failed','unsupported')", name="extraction_valid"
+        ),
+        Index("ix_knowledge_items_search", "search_vector", postgresql_using="gin"),
+    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=_uuid)
+    title: Mapped[str] = mapped_column(String(500), nullable=False)
+    kind: Mapped[str] = mapped_column(String(8), nullable=False)
+    layer: Mapped[str] = mapped_column(String(8), default="global", nullable=False, index=True)
+    format: Mapped[str] = mapped_column(String(16), nullable=False)
+    mime: Mapped[str] = mapped_column(String(200), nullable=False)
+    filename: Mapped[str | None] = mapped_column(String(500))
+    size_bytes: Mapped[int | None] = mapped_column(Integer)
+    sha256: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    file_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("stored_files.id")
+    )
+    url: Mapped[str | None] = mapped_column(String(2000))
+    final_url: Mapped[str | None] = mapped_column(String(2000))
+    source_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("source_registry.id", ondelete="SET NULL"), index=True
+    )
+    text: Mapped[str] = mapped_column(Text, default="", nullable=False)
+    text_chars: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    extraction_status: Mapped[str] = mapped_column(String(16), nullable=False)
+    extraction_note: Mapped[str] = mapped_column(Text, default="", nullable=False)
+    pages_total: Mapped[int | None] = mapped_column(Integer)
+    pages_with_text: Mapped[int | None] = mapped_column(Integer)
+    published_at: Mapped[date | None] = mapped_column(Date)
+    search_vector: Mapped[Any] = mapped_column(
+        TSVECTOR,
+        Computed(
+            "setweight(to_tsvector('russian', coalesce(title, '')), 'A') || "
+            "setweight(to_tsvector('russian', left(coalesce(text, ''), 300000)), 'B')",
+            persisted=True,
+        ),
+    )
+    created_by_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL")
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    archived_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+    created_by: Mapped[User | None] = relationship(lazy="joined", foreign_keys=[created_by_id])
+    source: Mapped[Source | None] = relationship(lazy="joined")
+    topic_links: Mapped[list["KnowledgeItemTopic"]] = relationship(
+        cascade="all, delete-orphan", lazy="selectin"
+    )
+
+
+class KnowledgeItemTopic(Base):
+    """Связь материала с темами: одна справка может относиться к нескольким темам (§9.1)."""
+
+    __tablename__ = "knowledge_item_topics"
+    item_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("knowledge_items.id", ondelete="CASCADE"), primary_key=True
+    )
+    topic_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("topics.id", ondelete="CASCADE"),
+        primary_key=True,
+        index=True,
+    )

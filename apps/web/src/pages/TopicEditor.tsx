@@ -5,12 +5,13 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { ApiError, get, post, put } from "../api/client";
 import type { AuditEvent, Claim, Dossier, TopicCheck, TopicDetail, TopicVersionDetail } from "../api/types";
+import { KnowledgeList } from "../components/knowledge/Knowledge";
 import { ClaimsPanel } from "../components/topic/Claims";
 import { TopicStatusBadge } from "../components/topic/TopicsCatalog";
 import { ErrorState, Field, Modal, Spinner } from "../components/ui";
 import { ACTION_LABEL, fmtDateTime, VERSION_STATE_LABEL } from "../lib/format";
 
-type Tab = "dossier" | "claims" | "versions";
+type Tab = "dossier" | "claims" | "materials" | "versions";
 
 function ListEditor({ label, hint, value, onChange, disabled }: { label: string; hint?: string; value: string[]; onChange: (v: string[]) => void; disabled: boolean }) {
   return (
@@ -301,6 +302,7 @@ export function TopicEditorPage() {
           [
             ["dossier", "Досье"],
             ["claims", `Утверждения${v ? ` · ${v.dossier.claims.length}` : ""}`],
+            ["materials", "Материалы"],
             ["versions", "Версии и журнал"],
           ] as [Tab, string][]
         ).map(([k, label]) => (
@@ -312,7 +314,7 @@ export function TopicEditorPage() {
       </nav>
 
       {version.isLoading && <Spinner />}
-      {v && !editable && tab !== "versions" && (
+      {v && !editable && (tab === "dossier" || tab === "claims") && (
         <p className="mb-4 text-sm text-muted">
           {v.state === "draft" ? "Только просмотр." : `Версия v${v.label} ${VERSION_STATE_LABEL[v.state] ?? v.state} и неизменна.`}
           {v.state !== "draft" && t.draft_version && " Правки — в черновике."}
@@ -345,6 +347,13 @@ export function TopicEditorPage() {
         <ClaimsPanel topic={t} version={v} editable={editable && !dirty} onSaveClaims={saveClaims} saving={save.isPending} saveError={save.error} />
       )}
       {v && tab === "claims" && editable && dirty && <p className="mt-3 text-sm text-warning">Сначала сохраните изменения досье.</p>}
+
+      {tab === "materials" && (
+        <div>
+          <p className="mb-4 text-sm text-muted">Документы и ссылки по теме. Материал — не факт: подтверждённые утверждения вносятся во вкладке «Утверждения».</p>
+          <KnowledgeList topicId={t.id} />
+        </div>
+      )}
 
       {tab === "versions" && (
         <div className="grid gap-5 lg:grid-cols-2">

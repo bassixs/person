@@ -22,6 +22,11 @@ class Perm(StrEnum):
     TOPIC_EDIT = "topic.edit"
     TOPIC_ARCHIVE = "topic.archive"
     TOPIC_APPROVE = "topic.approve"  # утвердить тему, подтвердить/опровергнуть факт, пометки
+    KNOWLEDGE_READ = "knowledge.read"
+    KNOWLEDGE_ADD = "knowledge.add"  # загрузить файл, ссылку, текст; связать с темами
+    KNOWLEDGE_MANAGE = "knowledge.manage"  # архивировать любые материалы
+    SOURCE_READ = "source.read"
+    SOURCE_MANAGE = "source.manage"  # реестр источников настраивает редактор (§13.1)
     USERS_MANAGE = "users.manage"
     AUDIT_READ = "audit.read"
     INTEGRATIONS_DIAGNOSE = "integrations.diagnose"
@@ -31,6 +36,8 @@ ROLE_PERMS: dict[str, set[Perm]] = {
     "admin": {
         Perm.PERSONA_READ_ALL,
         Perm.TOPIC_READ_ALL,
+        Perm.KNOWLEDGE_READ,
+        Perm.SOURCE_READ,
         Perm.USERS_MANAGE,
         Perm.AUDIT_READ,
         Perm.INTEGRATIONS_DIAGNOSE,
@@ -48,6 +55,11 @@ ROLE_PERMS: dict[str, set[Perm]] = {
         Perm.TOPIC_EDIT,
         Perm.TOPIC_ARCHIVE,
         Perm.TOPIC_APPROVE,
+        Perm.KNOWLEDGE_READ,
+        Perm.KNOWLEDGE_ADD,
+        Perm.KNOWLEDGE_MANAGE,
+        Perm.SOURCE_READ,
+        Perm.SOURCE_MANAGE,
         Perm.AUDIT_READ,
     },
     "author": {
@@ -59,6 +71,9 @@ ROLE_PERMS: dict[str, set[Perm]] = {
         Perm.TOPIC_READ_ACTIVE,
         Perm.TOPIC_CREATE,
         Perm.TOPIC_EDIT,
+        Perm.KNOWLEDGE_READ,
+        Perm.KNOWLEDGE_ADD,
+        Perm.SOURCE_READ,
     },
     "operator": {Perm.PERSONA_READ_ACTIVE, Perm.TOPIC_READ_ACTIVE},
 }

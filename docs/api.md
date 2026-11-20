@@ -47,6 +47,16 @@ OpenAPI: `/api/v1/openapi.json`, Swagger UI: `/api/v1/docs`.
 | `POST /topics/{id}/versions/{vid}/suspend` | `topic.approve` | `{reason}` — приостановка темы |
 | `POST /topics/{id}/claim-flags` | `topic.approve` | `{claim_id, flag: refuted\|disputed\|stale\|cleared, reason}` — срочная пометка утверждения активной версии |
 | `GET /topics/{id}/claims/{cid}/history`, `GET /topics/{id}/history` | read | история утверждения по версиям и пометкам; журнал темы |
+| `GET /knowledge`, `GET /knowledge/{id}` | `knowledge.read` (editor, author, admin) | материалы с фильтрами `layer`, `topic_id`, `source_id`, `status`; карточка — с извлечённым текстом |
+| `GET /knowledge/search?q=` | `knowledge.read` | полнотекстовый поиск (русская морфология), каждый результат — материал, источник и цитата `excerpt` с разметкой ⟦…⟧ |
+| `POST /knowledge/files` | `knowledge.add` | multipart `file`, `title`, `layer`, `topic_ids`, `source_id`, `published_at`; до 20 МБ; формат по содержимому (415), дубликат (409) |
+| `POST /knowledge/urls` | `knowledge.add` | `{url, …}` — получение с защитой от SSRF: 422 `url_blocked`, 502 `fetch_failed` |
+| `POST /knowledge/texts` | `knowledge.add` | `{title, text, …}` |
+| `PATCH /knowledge/{id}`, `POST …/archive`, `…/unarchive` | автор своего / `knowledge.manage` | метаданные, слой, темы; архив |
+| `GET /knowledge/{id}/file` | `knowledge.read` | исходный файл, только как вложение (`application/octet-stream`, `nosniff`) |
+| `GET /sources`, `GET /sources/{id}`, `GET …/fetches` | `source.read` | реестр и журнал обращений |
+| `POST /sources`, `PATCH /sources/{id}` | `source.manage` (editor) | создать, изменить, отключить (`status`) |
+| `POST /sources/{id}/check` | `source.manage` | реальная проверка соединения; ошибка записывается как ошибка получения |
 | `GET /overview` | сессия | только реальные данные; модули будущих итераций — `available: false` |
 | `GET /integrations/status`, `POST /integrations/{llm,max}/check` | сессия / admin | статусы и реальная проверка соединения |
 | `GET /audit` | `audit.read` | `entity_id`, `action`, пагинация |

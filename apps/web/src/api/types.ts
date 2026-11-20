@@ -463,3 +463,76 @@ export interface ClaimHistoryEntry {
   reason: string | null;
   actor: UserRef | null;
 }
+
+// ---------- итерация 3: база знаний и источники ----------
+
+export type ExtractionStatus = "ok" | "partial" | "failed" | "unsupported";
+
+export interface KnowledgeItem {
+  id: string;
+  title: string;
+  kind: "file" | "url" | "text";
+  layer: "global" | "topic";
+  format: string;
+  mime: string;
+  filename: string | null;
+  size_bytes: number | null;
+  url: string | null;
+  final_url: string | null;
+  source: { id: string; name: string; url: string | null } | null;
+  topics: { id: string; title: string }[];
+  text_chars: number;
+  extraction_status: ExtractionStatus;
+  extraction_note: string;
+  pages_total: number | null;
+  pages_with_text: number | null;
+  published_at: string | null;
+  has_file: boolean;
+  created_by: UserRef | null;
+  created_at: string;
+  archived_at: string | null;
+}
+
+export interface KnowledgeItemDetail extends KnowledgeItem {
+  text: string;
+}
+
+export interface SearchHit {
+  item: KnowledgeItem;
+  rank: number;
+  excerpt: string;
+}
+
+export interface SourceOut {
+  id: string;
+  name: string;
+  url: string | null;
+  kind: string;
+  geography: string;
+  topics: string;
+  access_method: string;
+  access_notes: string;
+  priority: number;
+  check_interval: string;
+  status: "active" | "disabled";
+  last_checked_at: string | null;
+  last_ok_at: string | null;
+  last_error: string | null;
+  items_count: number;
+  created_by: UserRef | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SourceFetchOut {
+  id: string;
+  purpose: string;
+  ok: boolean;
+  http_status: number | null;
+  final_url: string | null;
+  bytes: number | null;
+  duration_ms: number | null;
+  error: string | null;
+  knowledge_item_id: string | null;
+  created_at: string;
+}

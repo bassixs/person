@@ -519,6 +519,13 @@ export async function demoRequest(method: string, path: string, query: Q, body: 
     return { items: rows.slice((page - 1) * size, page * size).map((e) => auditOut(s, e)), total: rows.length, page, page_size: size };
   }
 
+  // --- база знаний и источники: в демо-версии пусто ---
+  if (seg[0] === "knowledge" || seg[0] === "sources") {
+    if (method === "GET" && seg.length === 1) return seg[0] === "sources" ? [] : { items: [], total: 0, page: 1, page_size: 50 };
+    if (method === "GET" && seg[1] === "search") return [];
+    throw err(503, "demo_unavailable", "База знаний работает на рабочем сервере.");
+  }
+
   // --- темы: в демо-версии только пустой каталог (досье хранится в общей БД сервера) ---
   if (seg[0] === "topics") {
     if (seg.length === 1 && method === "GET") return { items: [], total: 0, page: 1, page_size: 50 };

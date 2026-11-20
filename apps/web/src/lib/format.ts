@@ -76,6 +76,12 @@ export const ACTION_LABEL: Record<string, string> = {
   "topic.claim_unflag": "снял(а) пометку с утверждения",
   "topic.archive": "отправил(а) тему в архив",
   "topic.unarchive": "вернул(а) тему из архива",
+  "knowledge.add": "добавил(а) материал",
+  "knowledge.update": "изменил(а) материал",
+  "knowledge.archive": "убрал(а) материал в архив",
+  "knowledge.unarchive": "вернул(а) материал из архива",
+  "source.create": "добавил(а) источник",
+  "source.update": "изменил(а) источник",
   "auth.login": "вошёл(ла) в систему",
   "auth.logout": "вышел(ла) из системы",
   "auth.login_failed": "неудачная попытка входа",
@@ -116,3 +122,27 @@ export const CLAIM_STATUS_LABEL: Record<string, string> = {
   refuted: "опровергнуто",
   stale: "устарело",
 };
+
+export const EXTRACTION_LABEL: Record<string, string> = {
+  ok: "текст извлечён",
+  partial: "частично",
+  failed: "текст не извлечён",
+  unsupported: "без извлечения",
+};
+
+export const SOURCE_KIND_LABEL: Record<string, string> = {
+  official: "официальный сайт",
+  media: "СМИ",
+  rss: "RSS",
+  api: "API",
+  community: "публичное сообщество",
+  file: "файл",
+  other: "другое",
+};
+
+export function fmtBytes(n: number | null | undefined) {
+  if (!n) return "";
+  if (n < 1024) return `${n} Б`;
+  if (n < 1024 * 1024) return `${Math.round(n / 1024)} КБ`;
+  return `${(n / 1024 / 1024).toFixed(1)} МБ`;
+}

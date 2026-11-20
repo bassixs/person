@@ -91,3 +91,23 @@ export const get = <T>(path: string, query?: Query) => api<T>("GET", path, { que
 export const post = <T>(path: string, body?: unknown) => api<T>("POST", path, { body });
 export const put = <T>(path: string, body?: unknown) => api<T>("PUT", path, { body });
 export const patch = <T>(path: string, body?: unknown) => api<T>("PATCH", path, { body });
+
+/** Загрузка файла (multipart). Демо-сборка файлы не принимает. */
+export async function upload<T>(path: string, form: FormData): Promise<T> {
+  if (IS_DEMO) throw new ApiError(503, "demo_unavailable", "Загрузка файлов работает на рабочем сервере.");
+  const headers: Record<string, string> = { Accept: "application/json" };
+  const t = csrfToken ?? readCsrfCookie();
+  if (t) headers["X-CSRF-Token"] = t;
+  let res: Response;
+  try {
+    res = await fetch(buildUrl(path), { method: "POST", headers, credentials: "same-origin", body: form });
+  } catch {
+    throw new ApiError(0, "network", "Сервер недоступен. Проверьте, что API запущен.");
+  }
+  const data = await res.json().catch(() => null);
+  if (!res.ok) {
+    const e = data?.error;
+    throw new ApiError(res.status, e?.code ?? "http_error", e?.message ?? `Ошибка ${res.status}`, e?.details, e?.request_id);
+  }
+  return data as T;
+}

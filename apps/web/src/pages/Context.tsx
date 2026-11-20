@@ -1,6 +1,8 @@
-import { Database, Globe, Radar } from "lucide-react";
+import { Radar } from "lucide-react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { useAmbient } from "../components/Ambient";
+import { KnowledgeList } from "../components/knowledge/Knowledge";
+import { SourcesRegistry } from "../components/knowledge/Sources";
 import { TopicsCatalog } from "../components/topic/TopicsCatalog";
 import { EmptyState, LocalTabs, PageHeader } from "../components/ui";
 import { TopicEditorPage } from "./TopicEditor";
@@ -26,24 +28,8 @@ export function ContextPage() {
         <Route index element={<Navigate to="topics" replace />} />
         <Route path="topics" element={<TopicsCatalog />} />
         <Route path="topics/:id" element={<TopicEditorPage />} />
-        <Route
-          path="knowledge"
-          element={
-            <EmptyState icon={<Database className="h-8 w-8" />} title="База знаний — итерация 3">
-              Загрузка TXT, MD, PDF, DOCX, CSV, XLSX, изображений и URL с проверкой формата, извлечением текста и
-              честными статусами ошибок. Новые материалы не становятся фактами без проверки.
-            </EmptyState>
-          }
-        />
-        <Route
-          path="sources"
-          element={
-            <EmptyState icon={<Globe className="h-8 w-8" />} title="Реестр источников — итерация 3">
-              Реальный боевой список источников владельцем не утверждён, поэтому реестр будет пустым до заполнения
-              редактором. Фиктивные источники не создаются.
-            </EmptyState>
-          }
-        />
+        <Route path="knowledge" element={<KnowledgeList />} />
+        <Route path="sources" element={<SourcesRegistry />} />
         <Route
           path="monitoring"
           element={
