@@ -30,8 +30,9 @@ import type {
 import { useAmbient } from "../components/Ambient";
 import { FieldEditor } from "../components/passport/FieldEditor";
 import { InterviewTab, ProposalsTab } from "../components/persona/AiWork";
+import { LabStatusBlock, LabTab, useLab } from "../components/persona/Lab";
 import { FinalCheckBlock, issuesBySection, latest, SignalChip, useStartValidation, useValidations, ValidationCard } from "../components/persona/Validation";
-import { EmptyState, ErrorState, Modal, PersonaAvatar, Spinner, StatusBadge } from "../components/ui";
+import { ErrorState, Modal, PersonaAvatar, Spinner, StatusBadge } from "../components/ui";
 import { sectionStats } from "../lib/passport";
 import { ACTION_LABEL, fmtDateTime, VERSION_STATE_LABEL } from "../lib/format";
 
@@ -114,14 +115,25 @@ function AiPanel({
 }
 
 function ActivationDialog({ persona, version, open, onOpenChange }: { persona: PersonaDetail; version: VersionDetail; open: boolean; onOpenChange: (v: boolean) => void }) {
+  const qc = useQueryClient();
   const runs = useValidations(persona.id);
   const fin = latest(runs.data, "final");
+  const lab = useLab(persona.id);
+  const labLast = lab.data?.runs[0];
   const check = useQuery({
-    queryKey: ["activation-check", version.id, version.content_hash, fin?.id, fin?.status],
+    queryKey: ["activation-check", version.id, version.content_hash, fin?.id, fin?.status, labLast?.id, labLast?.status],
     queryFn: () => get<ActivationCheck>(`/personas/${persona.id}/activation-check`, { version_id: version.id }),
     enabled: open,
   });
-  const act = useMutation({ mutationFn: () => post(`/personas/${persona.id}/activate`, { version_id: version.id }) });
+  const act = useMutation({
+    mutationFn: () => post(`/personas/${persona.id}/activate`, { version_id: version.id }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["persona", persona.id] });
+      qc.invalidateQueries({ queryKey: ["personas"] });
+      qc.invalidateQueries({ queryKey: ["persona-history", persona.id] });
+      onOpenChange(false);
+    },
+  });
   const blockers = check.data?.blockers ?? [];
   return (
     <Modal open={open} onOpenChange={onOpenChange} title={`Активация версии ${version.label}`} description="Решение принимает сервер: критические проблемы и отсутствие актуальных проверок блокируют активацию." wide>
@@ -143,9 +155,9 @@ function ActivationDialog({ persona, version, open, onOpenChange }: { persona: P
             <p className="text-sm text-success">Блокирующих условий нет.</p>
           )}
           <FinalCheckBlock persona={persona} canRun={persona.capabilities.can_edit && version.state === "draft"} />
+          <LabStatusBlock persona={persona} />
           <p className="text-xs text-muted">
-            Лаборатория из шести групп испытаний — следующий шаг итерации 2. До неё активация невозможна — это честное
-            ограничение, а не ошибка.
+            После активации версия станет неизменной; следующий цикл правок пойдёт в новый черновик.
           </p>
           {act.error && <p className="text-sm text-danger">{(act.error as ApiError).message}</p>}
           <div className="flex justify-end gap-2">
@@ -229,6 +241,21 @@ export function PersonaEditorPage() {
   });
 
   const validations = useValidations(id);
+  const submit = useMutation({
+    mutationFn: () => post<PersonaDetail>(`/personas/${id}/submit`, { version_id: v!.id }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["persona", id] });
+      qc.invalidateQueries({ queryKey: ["personas"] });
+    },
+  });
+  const suspend = useMutation({
+    mutationFn: ({ vid, reason }: { vid: string; reason: string }) => post<PersonaDetail>(`/personas/${id}/versions/${vid}/suspend`, { reason }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["persona", id] });
+      qc.invalidateQueries({ queryKey: ["personas"] });
+      qc.invalidateQueries({ queryKey: ["persona-history", id] });
+    },
+  });
   const startCheck = useStartValidation(id);
   const deepen = useMutation({
     mutationFn: (sectionKey: string) => post(`/personas/${id}/proposals/deepen`, { section: sectionKey }),
@@ -400,11 +427,16 @@ export function PersonaEditorPage() {
           >
             <ShieldCheck className="h-4 w-4" /> {checkBusy ? "Проверка идёт…" : "Проверить"}
           </button>
-          <button className="btn-secondary" disabled title="Лаборатория из 6 групп испытаний — итерация 2">
+          <button className="btn-secondary" onClick={() => setTab("tests")}>
             <FlaskConical className="h-4 w-4" /> Лаборатория
           </button>
-          <button className="btn-secondary" disabled title="Доступно после проверок (итерация 2)">
-            <Send className="h-4 w-4" /> На согласование
+          <button
+            className="btn-secondary"
+            disabled={readOnly || dirty || submit.isPending || p.status === "pending_approval"}
+            onClick={() => submit.mutate()}
+            title={p.status === "pending_approval" ? "Уже на согласовании" : "Нужна актуальная проверка целостности без critical"}
+          >
+            <Send className="h-4 w-4" /> {p.status === "pending_approval" ? "На согласовании" : "На согласование"}
           </button>
           {p.capabilities.can_activate && v?.state === "draft" && (
             <button className="btn-secondary" onClick={() => setActivateOpen(true)} disabled={dirty} title={dirty ? "Сначала сохраните правки" : undefined}>
@@ -428,6 +460,11 @@ export function PersonaEditorPage() {
           >
             Загрузить актуальную версию
           </button>
+        </div>
+      )}
+      {submit.error && (
+        <div className="mb-4 rounded-ui border border-warning/40 bg-warning/10 px-4 py-3 text-sm text-fg-soft" role="alert">
+          {(submit.error as ApiError).message}
         </div>
       )}
       {saveError && (
@@ -546,13 +583,7 @@ export function PersonaEditorPage() {
 
       {tab === "interview" && <InterviewTab persona={p} sch={sch} onProposals={() => setTab("proposals")} />}
       {tab === "proposals" && <ProposalsTab persona={p} sch={sch} version={v} dirty={dirty} />}
-      {tab === "tests" && (
-        <EmptyState icon={<FlaskConical className="h-8 w-8" />} title="Тесты не запускались">
-          Лаборатория из шести групп: биографическая согласованность, устойчивость характера, границы компетенций,
-          модель восприятия, языковая устойчивость, работа с неопределённостью. Результат — pass / warning / critical с
-          объяснением, без «процента качества». Итерация 2.
-        </EmptyState>
-      )}
+      {tab === "tests" && <LabTab persona={p} dirty={dirty} />}
       {tab === "versions" && (
         <div className="grid gap-5 lg:grid-cols-2">
           <section className="panel p-5">
@@ -566,6 +597,18 @@ export function PersonaEditorPage() {
                   <span className="chip border-line-strong text-xs text-fg-soft">{VERSION_STATE_LABEL[x.state]}</span>
                   <span className="font-mono text-[11px] text-muted">#{x.content_hash.slice(0, 10)}</span>
                   <span className="ml-auto text-xs text-muted">{fmtDateTime(x.updated_at)}</span>
+                  {x.state === "active" && p.capabilities.can_suspend && (
+                    <button
+                      className="btn-ghost btn-sm text-danger"
+                      disabled={suspend.isPending}
+                      onClick={() => {
+                        const reason = window.prompt("Причина экстренной приостановки версии (попадёт в журнал):");
+                        if (reason && reason.trim().length >= 3) suspend.mutate({ vid: x.id, reason: reason.trim() });
+                      }}
+                    >
+                      Приостановить
+                    </button>
+                  )}
                 </li>
               ))}
             </ul>

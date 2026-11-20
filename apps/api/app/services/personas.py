@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 from app import audit
 from app.deps import Principal
 from app.errors import ApiError, not_found
-from app.models import Persona, PersonaSourceMaterial, PersonaVersion
+from app.models import Persona, PersonaSourceMaterial, PersonaVersion, ValidationRun
 from app.passport import (
     SCHEMA_VERSION,
     Passport,
@@ -167,6 +167,9 @@ def update_draft(
     if isinstance(name.value, str) and name.value:
         persona.display_name = name.value
     persona.updated_at = datetime.now(UTC)
+    if persona.status in ("pending_approval", "needs_revision"):
+        # Содержимое изменилось после отправки на согласование — снова черновик (Q-005).
+        persona.status = "draft"
     db.flush()
     stale = refresh_stale(db, version)
     audit.record(
@@ -257,5 +260,134 @@ def unarchive(db: Session, p: Principal, persona: Persona, request: Request | No
         action="persona.unarchive",
         entity_type="persona",
         entity_id=persona.id,
+        request=request,
+    )
+
+
+# ---------- Согласование, активация, приостановка (PROJECT_CONTEXT §7.4) ----------
+
+
+def submit_for_approval(
+    db: Session, p: Principal, persona: Persona, version: PersonaVersion, request: Request | None
+) -> None:
+    """Q-005 (решение владельца): отправляют автор и редактор.
+
+    Нужна актуальная проверка целостности без critical.
+    """
+    if persona.status == "archived":
+        raise ApiError(409, "persona_archived", "Личность в архиве")
+    if version.state != "draft":
+        raise ApiError(409, "not_draft", "На согласование отправляется черновик")
+    fresh = db.scalar(
+        select(ValidationRun)
+        .where(
+            ValidationRun.version_id == version.id,
+            ValidationRun.content_hash == version.content_hash,
+            ValidationRun.status == "done",
+        )
+        .order_by(ValidationRun.finished_at.desc())
+    )
+    if fresh is None:
+        raise ApiError(
+            409,
+            "validation_required",
+            "Сначала проверьте целостность паспорта: "
+            "проверка должна относиться к текущему содержимому",
+        )
+    if fresh.critical_count:
+        raise ApiError(
+            409,
+            "validation_critical",
+            f"Проверка нашла критические противоречия: {fresh.critical_count}. "
+            "Исправьте их перед отправкой",
+        )
+    persona.status = "pending_approval"
+    persona.updated_at = datetime.now(UTC)
+    audit.record(
+        db,
+        actor_id=p.user.id,
+        action="persona.submit",
+        entity_type="persona_version",
+        entity_id=version.id,
+        entity_version=version.label,
+        details={"content_hash": version.content_hash, "validation_run": str(fresh.id)},
+        request=request,
+    )
+
+
+def activate(
+    db: Session, p: Principal, persona: Persona, version: PersonaVersion, request: Request | None
+) -> PersonaVersion:
+    """Черновик → активная версия. Барьер пересчитывается внутри транзакции под блокировкой."""
+    from app.activation import activation_blockers  # локально: activation импортирует модели
+
+    db.scalar(select(Persona.id).where(Persona.id == persona.id).with_for_update())
+    db.scalar(select(PersonaVersion.id).where(PersonaVersion.id == version.id).with_for_update())
+    db.refresh(version)
+    blockers = activation_blockers(db, version)
+    if blockers:
+        raise ApiError(
+            409,
+            "activation_blocked",
+            "Активация заблокирована: устраните блокирующие условия",
+            [b.__dict__ for b in blockers],
+        )
+    now = datetime.now(UTC)
+    previous = (
+        db.get(PersonaVersion, persona.active_version_id) if persona.active_version_id else None
+    )
+    if previous is not None and previous.state == "active":
+        previous.state = "superseded"
+        db.flush()  # одна активная версия на персону (частичный уникальный индекс)
+    version.state = "active"
+    version.approved_by_id = p.user.id
+    version.approved_at = now
+    persona.active_version_id = version.id
+    persona.status = "active"
+    persona.updated_at = now
+    db.flush()
+    refresh_stale(db, version)  # неразобранные предложения к бывшему черновику устаревают
+    audit.record(
+        db,
+        actor_id=p.user.id,
+        action="persona.activate",
+        entity_type="persona_version",
+        entity_id=version.id,
+        entity_version=version.label,
+        details={
+            "content_hash": version.content_hash,
+            "superseded": previous.label if previous is not None else None,
+        },
+        request=request,
+    )
+    return version
+
+
+def suspend(
+    db: Session,
+    p: Principal,
+    persona: Persona,
+    version: PersonaVersion,
+    reason: str,
+    request: Request | None,
+) -> None:
+    """Экстренная приостановка активной версии: отдельное действие с журналом причины."""
+    if version.state != "active":
+        raise ApiError(409, "not_active", "Приостановить можно только активную версию")
+    if not reason.strip():
+        raise ApiError(422, "reason_required", "Укажите причину приостановки")
+    version.state = "suspended"
+    if persona.active_version_id == version.id:
+        persona.active_version_id = None
+    persona.status = "suspended"
+    persona.updated_at = datetime.now(UTC)
+    audit.record(
+        db,
+        actor_id=p.user.id,
+        action="persona.suspend",
+        entity_type="persona_version",
+        entity_id=version.id,
+        entity_version=version.label,
+        details={"reason": reason.strip()[:1000]},
         request=request,
     )

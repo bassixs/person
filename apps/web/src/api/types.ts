@@ -68,6 +68,7 @@ export interface PersonaDetail extends PersonaListItem {
     can_archive: boolean;
     can_activate: boolean;
     can_create_version: boolean;
+    can_suspend?: boolean;
   };
   pending_proposals: number;
   ai_configured: boolean;
@@ -281,4 +282,46 @@ export interface ConsistencySignal {
   severity: string | null;
   model: string | null;
   content_hash: string | null;
+}
+
+// ---------- Итерация 2: лаборатория ----------
+
+export type Verdict = "pass" | "warning" | "critical";
+
+export interface LabResult {
+  id: string;
+  lab_group: string;
+  case_key: string;
+  prompt: string;
+  response: string;
+  verdict: Verdict;
+  confidence: number | null;
+  explanation: string | null;
+  suggestion: string | null;
+}
+
+export interface LabRun {
+  id: string;
+  version_id: string;
+  content_hash: string;
+  suite_version: string;
+  status: "queued" | "running" | "done" | "failed";
+  models: { simulator?: string; judge?: string; explainer?: string };
+  pass_count: number;
+  warning_count: number;
+  critical_count: number;
+  error: string | null;
+  started_by: UserRef | null;
+  created_at: string;
+  finished_at: string | null;
+  results: LabResult[];
+  is_current: boolean;
+  version_label: string | null;
+}
+
+export interface LabOverview {
+  suite_version: string;
+  groups: { key: string; title: string; goal: string; cases: { key: string; prompt: string }[] }[];
+  runs: LabRun[];
+  baseline: LabRun | null;
 }

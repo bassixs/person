@@ -26,10 +26,19 @@ def _persona(db: DB, p: CurrentUser, persona_id: UUID) -> Persona:
     return psvc.visible_persona(db, p, persona_id)
 
 
-def _out(run: ValidationRun, current_hash: str | None) -> ValidationRunOut:
+def _out(run: ValidationRun, _current_hash: str | None = None) -> ValidationRunOut:
     out = ValidationRunOut.model_validate(run)
-    out.is_current = run.content_hash == current_hash
+    # Проверка актуальна, пока содержимое её версии не менялось (в т.ч. после активации).
+    v = object_session_version(run)
+    out.is_current = v is not None and run.content_hash == v.content_hash
     return out
+
+
+def object_session_version(run: ValidationRun) -> PersonaVersion | None:
+    from sqlalchemy.orm import object_session
+
+    s = object_session(run)
+    return s.get(PersonaVersion, run.version_id) if s is not None else None
 
 
 def _current_hash(db: DB, persona: Persona) -> str | None:

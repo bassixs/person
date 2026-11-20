@@ -32,6 +32,7 @@ from app.schemas import (
     PersonaListItem,
     PersonaPatch,
     SourceMaterialOut,
+    SuspendIn,
     UserRef,
     VersionDetail,
     VersionRef,
@@ -126,6 +127,7 @@ def _detail(db: DB, persona: Persona, p: Principal) -> PersonaDetail:
             and not archived
             and not has_draft
             and persona.active_version_id is not None,
+            can_suspend=p.has(Perm.PERSONA_ACTIVATE) and persona.active_version_id is not None,
         ),
         pending_proposals=(
             db.scalar(
@@ -324,27 +326,65 @@ def activate(persona_id: UUID, body: ActivateIn, db: DB, p: CurrentUser, request
     v = db.get(PersonaVersion, body.version_id)
     if v is None or v.persona_id != persona.id:
         raise not_found("Версия")
-    blockers = activation_blockers(db, v)
-    audit.record(
-        db,
-        actor_id=p.user.id,
-        action="persona.activate_rejected" if blockers else "persona.activate",
-        entity_type="persona_version",
-        entity_id=v.id,
-        entity_version=v.label,
-        details={"content_hash": v.content_hash, "blockers": [b.code for b in blockers]},
-        request=request,
-    )
-    db.commit()
-    if blockers:
-        raise ApiError(
-            409,
-            "activation_blocked",
-            "Активация заблокирована: устраните блокирующие условия",
-            [b.__dict__ for b in blockers],
+    try:
+        svc.activate(db, p, persona, v, request)
+    except ApiError as e:
+        db.rollback()
+        # Отклонённая попытка тоже попадает в журнал.
+        audit.record(
+            db,
+            actor_id=p.user.id,
+            action="persona.activate_rejected",
+            entity_type="persona_version",
+            entity_id=v.id,
+            entity_version=v.label,
+            details={
+                "content_hash": v.content_hash,
+                "blockers": [b["code"] for b in (e.details or []) if isinstance(b, dict)],
+            },
+            request=request,
         )
-    # Недостижимо в итерации 1 — барьер всегда содержит отсутствующие проверки.
-    raise ApiError(500, "unreachable", "Активация без проверок невозможна")
+        db.commit()
+        raise
+    db.commit()
+    return {
+        "version_id": str(v.id),
+        "label": v.label,
+        "state": v.state,
+        "content_hash": v.content_hash,
+    }
+
+
+@router.post("/{persona_id}/submit", response_model=PersonaDetail)
+def submit(
+    persona_id: UUID, body: ActivateIn, db: DB, p: CurrentUser, request: Request
+) -> PersonaDetail:
+    """Отправить черновик на согласование (Q-005: автор и редактор, после проверки без critical)."""
+    p.require(Perm.PERSONA_EDIT)
+    persona = svc.visible_persona(db, p, persona_id)
+    v = svc.visible_version(db, p, persona, body.version_id)
+    svc.submit_for_approval(db, p, persona, v, request)
+    db.commit()
+    db.refresh(persona)
+    return _detail(db, persona, p)
+
+
+@router.post("/{persona_id}/versions/{version_id}/suspend", response_model=PersonaDetail)
+def suspend(
+    persona_id: UUID,
+    version_id: UUID,
+    body: SuspendIn,
+    db: DB,
+    p: CurrentUser,
+    request: Request,
+) -> PersonaDetail:
+    p.require(Perm.PERSONA_ACTIVATE)
+    persona = svc.visible_persona(db, p, persona_id)
+    v = svc.visible_version(db, p, persona, version_id)
+    svc.suspend(db, p, persona, v, body.reason, request)
+    db.commit()
+    db.refresh(persona)
+    return _detail(db, persona, p)
 
 
 @router.get("/{persona_id}/history", response_model=list[AuditOut])

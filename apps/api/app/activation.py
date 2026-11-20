@@ -9,7 +9,7 @@
 
 Пункт 3 — финальная проверка (ValidationRun kind=final, модель LLM_MODEL_FINAL, E-028) именно для
 текущего content_hash: любая правка после неё делает её неактуальной. «Светофор» Decisions на барьер
-не влияет — это только подсказка. Пункт 4 (лаборатория) — следующий шаг итерации 2.
+не влияет — это только подсказка. Пункт 4 — актуальный прогон лаборатории (LabRun) без critical.
 """
 
 from dataclasses import dataclass
@@ -17,7 +17,7 @@ from dataclasses import dataclass
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.models import PersonaVersion, ValidationRun
+from app.models import LabRun, PersonaVersion, ValidationRun
 from app.passport import Passport
 
 
@@ -61,10 +61,28 @@ def activation_blockers(db: Session, version: PersonaVersion) -> list[Blocker]:
                 "Исправьте их и запустите проверку снова",
             )
         )
-    blockers.append(
-        Blocker(
-            "lab_missing",
-            "Лаборатория (6 групп испытаний) не прогонялась для текущего содержимого",
+    lab = db.scalar(
+        select(LabRun)
+        .where(
+            LabRun.version_id == version.id,
+            LabRun.content_hash == version.content_hash,
+            LabRun.status == "done",
         )
+        .order_by(LabRun.finished_at.desc())
     )
+    if lab is None:
+        blockers.append(
+            Blocker(
+                "lab_missing",
+                "Лаборатория (6 групп испытаний) не прогонялась для текущего содержимого",
+            )
+        )
+    elif lab.critical_count:
+        blockers.append(
+            Blocker(
+                "lab_critical",
+                f"Лаборатория нашла критические проблемы: {lab.critical_count}. "
+                "Поправьте паспорт и прогоните лабораторию снова",
+            )
+        )
     return blockers

@@ -638,6 +638,16 @@ export async function demoRequest(method: string, path: string, query: Q, body: 
       return s.audit.filter((e) => e.entity_id && ids.has(e.entity_id)).map((e) => auditOut(s, e));
     }
     // Итерация 2: интервью и предложения. В демо LLM нет — честное «не подключено», пустые списки.
+    if (seg[2] === "lab") {
+      requirePerm(u, "persona.read_all");
+      if (method === "GET" && seg.length === 3) return { suite_version: "1.0", groups: [], runs: [], baseline: null };
+      requirePerm(u, "persona.edit");
+      throw err(503, "llm_not_configured", "ИИ не подключён в демо-версии: лаборатория работает на рабочем сервере.");
+    }
+    if (seg[2] === "submit" && method === "POST") {
+      requirePerm(u, "persona.edit");
+      throw err(409, "validation_required", "Сначала проверьте целостность паспорта (в демо проверка недоступна).");
+    }
     if (seg[2] === "consistency") {
       requirePerm(u, "persona.read_all");
       return { status: "unavailable", level: null, p_conflict: null, severity: null, model: null, content_hash: null };

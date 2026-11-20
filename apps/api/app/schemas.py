@@ -156,6 +156,7 @@ class PersonaCapabilities(BaseModel):
     can_archive: bool
     can_activate: bool
     can_create_version: bool
+    can_suspend: bool = False
 
 
 class PersonaDetail(PersonaListItem):
@@ -181,6 +182,10 @@ class VersionUpdate(BaseModel):
 
 class ActivateIn(BaseModel):
     version_id: UUID
+
+
+class SuspendIn(BaseModel):
+    reason: str = Field(min_length=3, max_length=1000)
 
 
 class AuditOut(BaseModel):
@@ -334,3 +339,54 @@ class SignalOut(BaseModel):
     severity: str | None = None
     model: str | None = None
     content_hash: str | None = None
+
+
+# ---------- Итерация 2: лаборатория ----------
+
+
+class LabResultOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: UUID
+    lab_group: str
+    case_key: str
+    prompt: str
+    response: str
+    verdict: Literal["pass", "warning", "critical"]
+    confidence: float | None
+    explanation: str | None
+    suggestion: str | None
+
+
+class LabRunOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: UUID
+    version_id: UUID
+    content_hash: str
+    suite_version: str
+    status: Literal["queued", "running", "done", "failed"]
+    models: dict[str, Any]
+    pass_count: int
+    warning_count: int
+    critical_count: int
+    error: str | None
+    started_by: UserRef | None
+    created_at: datetime
+    finished_at: datetime | None
+    results: list[LabResultOut]
+    is_current: bool = False
+    version_label: str | None = None
+
+
+class LabGroupOut(BaseModel):
+    key: str
+    title: str
+    goal: str
+    cases: list[dict[str, str]]
+
+
+class LabOverviewOut(BaseModel):
+    suite_version: str
+    groups: list[LabGroupOut]
+    runs: list[LabRunOut]
+    # Для сравнения: последний прогон активной (утверждённой) версии, если она есть.
+    baseline: LabRunOut | None = None

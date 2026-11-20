@@ -20,7 +20,7 @@ OpenAPI: `/api/v1/openapi.json`, Swagger UI: `/api/v1/docs`.
 | `PUT /personas/{id}/versions/{vid}` | `persona.edit` | `{passport, expected_revision}`; 409 `revision_conflict` / `version_immutable` / `persona_archived` |
 | `POST /personas/{id}/versions` | `persona.edit` | новый черновик от активной версии |
 | `GET /personas/{id}/activation-check?version_id=` | read | список блокеров |
-| `POST /personas/{id}/activate` | `persona.activate` (editor) | 409 `activation_blocked` с блокерами |
+| `POST /personas/{id}/activate` | `persona.activate` (editor) | черновик → активная; 409 `activation_blocked` с блокерами (`validation_missing/critical`, `lab_missing/critical`, …) |
 | `GET /personas/{id}/history` | read_all | журнал по персоне и её версиям |
 | `GET /personas/{id}/interviews`, `GET …/interviews/{sid}` | read_all | ИИ-интервью с вопросами и ответами |
 | `POST /personas/{id}/interviews` | `persona.edit` | начать (или продолжить) интервью по черновику: 1-й раунд 3–5 вопросов; 503 `llm_not_configured`, 502 `llm_failed` |
@@ -34,6 +34,10 @@ OpenAPI: `/api/v1/openapi.json`, Swagger UI: `/api/v1/docs`.
 | `POST /personas/{id}/validations` | `persona.edit` | `{kind: check\|final}` → 202, проверка идёт в фоне; 503 без LLM |
 | `POST /personas/{id}/validations/{rid}/issues/{iid}/propose` | `persona.edit` | исправление из замечания → предложение в очереди |
 | `GET /personas/{id}/consistency` | read_all | «светофор» для текущего черновика: `ready` (green/yellow/red), `pending`, `unavailable` |
+| `GET /personas/{id}/lab` | read_all | набор тестов (6 групп), прогоны, `baseline` — прогон активной версии для сравнения |
+| `POST /personas/{id}/lab/runs`, `GET …/lab/runs/{rid}` | `persona.edit` / read_all | прогон лаборатории (202, в фоне); вердикты pass/warning/critical с объяснениями |
+| `POST /personas/{id}/submit` | `persona.edit` | `{version_id}` → на согласование; 409 `validation_required` / `validation_critical` |
+| `POST /personas/{id}/versions/{vid}/suspend` | `persona.activate` (editor) | `{reason}` — экстренная приостановка активной версии |
 | `GET /overview` | сессия | только реальные данные; модули будущих итераций — `available: false` |
 | `GET /integrations/status`, `POST /integrations/{llm,max}/check` | сессия / admin | статусы и реальная проверка соединения |
 | `GET /audit` | `audit.read` | `entity_id`, `action`, пагинация |

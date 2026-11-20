@@ -500,3 +500,83 @@ class ConsistencySignal(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
+
+
+# ---------------------------------------------------------------------------
+# Итерация 2: лаборатория (6 групп испытаний, PROJECT_CONTEXT §7.3)
+# ---------------------------------------------------------------------------
+
+LAB_GROUPS = ("biography", "character", "competence", "perception", "language", "uncertainty")
+
+
+class LabRun(Base):
+    """Прогон лаборатории по стандартному набору тестов.
+
+    Действителен только для своего content_hash.
+    """
+
+    __tablename__ = "persona_test_runs"
+    __table_args__ = (
+        CheckConstraint("status IN ('queued','running','done','failed')", name="lab_status_valid"),
+        Index("ix_lab_version_hash", "version_id", "content_hash"),
+    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=_uuid)
+    persona_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("personas.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    version_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("persona_versions.id", ondelete="CASCADE"), nullable=False
+    )
+    content_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    suite_version: Mapped[str] = mapped_column(String(16), nullable=False)
+    status: Mapped[str] = mapped_column(String(16), default="queued", nullable=False)
+    models: Mapped[dict[str, Any]] = mapped_column(JSONB, default=dict, nullable=False)
+    pass_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    warning_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    critical_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    error: Mapped[str | None] = mapped_column(Text)
+    started_by_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL")
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+    started_by: Mapped[User | None] = relationship(lazy="joined")
+    results: Mapped[list["LabResult"]] = relationship(
+        order_by="LabResult.position", cascade="all, delete-orphan", lazy="selectin"
+    )
+
+
+class LabResult(Base):
+    """Результат одного тест-кейса: ответ модели персоны, вердикт, уверенность, объяснение."""
+
+    __tablename__ = "persona_test_results"
+    __table_args__ = (
+        CheckConstraint("verdict IN ('pass','warning','critical')", name="lab_verdict_valid"),
+        CheckConstraint(
+            "lab_group IN ('biography','character','competence','perception',"
+            "'language','uncertainty')",
+            name="lab_group_valid",
+        ),
+    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=_uuid)
+    run_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("persona_test_runs.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    position: Mapped[int] = mapped_column(Integer, nullable=False)
+    lab_group: Mapped[str] = mapped_column(String(16), nullable=False)
+    case_key: Mapped[str] = mapped_column(String(48), nullable=False)
+    prompt: Mapped[str] = mapped_column(Text, nullable=False)
+    response: Mapped[str] = mapped_column(Text, nullable=False)
+    verdict: Mapped[str] = mapped_column(String(16), nullable=False)
+    confidence: Mapped[float | None] = mapped_column()
+    explanation: Mapped[str | None] = mapped_column(Text)
+    suggestion: Mapped[str | None] = mapped_column(Text)
