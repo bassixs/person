@@ -57,6 +57,9 @@ OpenAPI: `/api/v1/openapi.json`, Swagger UI: `/api/v1/docs`.
 | `GET /sources`, `GET /sources/{id}`, `GET …/fetches` | `source.read` | реестр и журнал обращений |
 | `POST /sources`, `PATCH /sources/{id}` | `source.manage` (editor) | создать, изменить, отключить (`status`) |
 | `POST /sources/{id}/check` | `source.manage` | реальная проверка соединения; ошибка записывается как ошибка получения |
+| `GET /topics/{id}/understanding` | `topic.read_all` | доступность ИИ, число материалов темы, последняя карточка понимания (`is_current` — по досье и набору материалов) |
+| `POST /topics/{id}/understanding`, `GET …/understanding/{rid}` | `topic.edit` / read | разбор темы ИИ в фоне (202); 503 без LLM; цитаты сверены с материалами (`quote_found`) |
+| `POST /topics/{id}/understanding/{rid}/apply` | `topic.edit` | `{kind: fact\|unverified\|conflict\|question\|gap, index}` — перенести пункт в черновик; утверждение — «не проверено», происхождение «предложение ИИ»; 409 `already_applied` |
 | `GET /overview` | сессия | только реальные данные; модули будущих итераций — `available: false` |
 | `GET /integrations/status`, `POST /integrations/{llm,max}/check` | сессия / admin | статусы и реальная проверка соединения |
 | `GET /audit` | `audit.read` | `entity_id`, `action`, пагинация |

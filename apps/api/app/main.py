@@ -15,6 +15,7 @@ from app.routers import (
     personas,
     system,
     topics,
+    understanding,
     users,
     validation,
 )
@@ -69,6 +70,7 @@ def create_app() -> FastAPI:
         lab.router,
         topics.router,
         knowledge.router,
+        understanding.router,
         system.router,
     ):
         app.include_router(r, prefix="/api/v1")

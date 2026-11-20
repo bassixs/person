@@ -368,6 +368,16 @@ def activation_check(db: Session, version: TopicVersion) -> tuple[list[Issue], l
                     f"Оперативное утверждение без срока пересмотра: «{c.text[:60]}»",
                 )
             )
+    if version.state == "draft":
+        from app.services.understanding import current_done  # локально: модуль импортирует этот
+
+        if current_done(db, version) is None:
+            warnings.append(
+                Issue(
+                    "understanding_missing",
+                    "Нет актуальной карточки понимания ИИ для текущего досье и материалов",
+                )
+            )
     today = date.today()
     for c in d.claims:
         if c.status == "verified" and c.valid_until is not None and c.valid_until < today:

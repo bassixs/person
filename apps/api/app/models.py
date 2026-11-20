@@ -873,3 +873,39 @@ class KnowledgeItemTopic(Base):
         primary_key=True,
         index=True,
     )
+
+
+class TopicUnderstandingRun(Base):
+    """Карточка понимания темы (§8.4). Привязана к содержимому досье и набору материалов.
+
+    Завершённая карточка неизменна (триггер в миграции 0007). Карточка не меняет досье:
+    редактор переносит из неё пункты в черновик по одному.
+    """
+
+    __tablename__ = "topic_understanding_runs"
+    __table_args__ = (
+        CheckConstraint("status IN ('queued','running','done','failed')", name="status_valid"),
+    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=_uuid)
+    topic_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("topics.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    version_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("topic_versions.id", ondelete="CASCADE"), nullable=False
+    )
+    content_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    materials_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    materials: Mapped[list[Any]] = mapped_column(JSONB, default=list, nullable=False)
+    status: Mapped[str] = mapped_column(String(16), default="queued", nullable=False)
+    model: Mapped[str | None] = mapped_column(String(200))
+    skill_version: Mapped[str] = mapped_column(String(16), nullable=False)
+    card: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
+    error: Mapped[str | None] = mapped_column(Text)
+    started_by_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL")
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    started_by: Mapped[User | None] = relationship(lazy="joined", foreign_keys=[started_by_id])

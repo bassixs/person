@@ -8,10 +8,11 @@ import type { AuditEvent, Claim, Dossier, TopicCheck, TopicDetail, TopicVersionD
 import { KnowledgeList } from "../components/knowledge/Knowledge";
 import { ClaimsPanel } from "../components/topic/Claims";
 import { TopicStatusBadge } from "../components/topic/TopicsCatalog";
+import { UnderstandingPanel } from "../components/topic/Understanding";
 import { ErrorState, Field, Modal, Spinner } from "../components/ui";
 import { ACTION_LABEL, fmtDateTime, VERSION_STATE_LABEL } from "../lib/format";
 
-type Tab = "dossier" | "claims" | "materials" | "versions";
+type Tab = "dossier" | "claims" | "materials" | "understanding" | "versions";
 
 function ListEditor({ label, hint, value, onChange, disabled }: { label: string; hint?: string; value: string[]; onChange: (v: string[]) => void; disabled: boolean }) {
   return (
@@ -303,6 +304,7 @@ export function TopicEditorPage() {
             ["dossier", "Досье"],
             ["claims", `Утверждения${v ? ` · ${v.dossier.claims.length}` : ""}`],
             ["materials", "Материалы"],
+            ["understanding", "Понимание ИИ"],
             ["versions", "Версии и журнал"],
           ] as [Tab, string][]
         ).map(([k, label]) => (
@@ -354,6 +356,8 @@ export function TopicEditorPage() {
           <KnowledgeList topicId={t.id} />
         </div>
       )}
+
+      {tab === "understanding" && <UnderstandingPanel topic={t} draftId={t.draft_version?.id ?? null} editable={t.capabilities.can_edit} />}
 
       {tab === "versions" && (
         <div className="grid gap-5 lg:grid-cols-2">
