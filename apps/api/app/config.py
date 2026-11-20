@@ -36,6 +36,12 @@ class Settings(BaseSettings):
     llm_model_final: str | None = None  # финальная проверка перед активацией
     # Decisions API (быстрые вероятностные ответы без текста): «светофор», судейство лаборатории
     decisions_model: str | None = None
+    # Эмбеддинги для смыслового поиска (E-037): тот же провайдер, что и LLM; пусто — только
+    # полнотекстовый поиск с честным статусом.
+    embedding_model: str | None = None
+    embedding_dimensions: int = 1024
+    # Ниже этого сходства смысловое совпадение не показываем (замер: нерелевантное 0.11–0.14)
+    semantic_min_similarity: float = 0.2
     llm_timeout_seconds: float = 60.0
     # response_format=json_object; выключите, если провайдер его не поддерживает
     llm_json_mode: bool = True

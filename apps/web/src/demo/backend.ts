@@ -522,7 +522,8 @@ export async function demoRequest(method: string, path: string, query: Q, body: 
   // --- база знаний и источники: в демо-версии пусто ---
   if (seg[0] === "knowledge" || seg[0] === "sources") {
     if (method === "GET" && seg.length === 1) return seg[0] === "sources" ? [] : { items: [], total: 0, page: 1, page_size: 50 };
-    if (method === "GET" && seg[1] === "search") return [];
+    if (method === "GET" && seg[1] === "search") return { semantic: false, hits: [] };
+    if (method === "GET" && seg[1] === "index-status") return { configured: false, model: null, counts: {} };
     throw err(503, "demo_unavailable", "База знаний работает на рабочем сервере.");
   }
 

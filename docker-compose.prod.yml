@@ -6,7 +6,8 @@ name: lichnosti
 
 services:
   postgres:
-    image: postgres:16-alpine
+    build: { context: ., dockerfile: infra/docker/postgres.Dockerfile }
+    image: lichnosti-postgres:16-pgvector
     restart: unless-stopped
     environment:
       POSTGRES_USER: lichnosti

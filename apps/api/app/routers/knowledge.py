@@ -9,6 +9,8 @@ from fastapi.responses import Response
 from pydantic import BaseModel, Field
 from sqlalchemy import func, or_, select
 
+from app.ai.embeddings import embeddings_configured
+from app.ai.embeddings import model_name as embedding_model_name
 from app.deps import DB, CurrentUser
 from app.errors import ApiError, not_found
 from app.knowledge import storage
@@ -16,6 +18,7 @@ from app.models import KnowledgeItem, KnowledgeItemTopic, Source, SourceFetch, T
 from app.rbac import Perm
 from app.schemas import Page, UserRef
 from app.services import knowledge as svc
+from app.services import semantic
 
 router = APIRouter(tags=["knowledge"])
 
@@ -53,6 +56,9 @@ class KnowledgeItemOut(BaseModel):
     pages_with_text: int | None
     published_at: date | None
     has_file: bool
+    index_status: str
+    index_error: str | None
+    chunks_count: int
     created_by: UserRef | None
     created_at: datetime
     archived_at: datetime | None
@@ -64,8 +70,22 @@ class KnowledgeItemDetail(KnowledgeItemOut):
 
 class SearchHit(BaseModel):
     item: KnowledgeItemOut
-    rank: float
+    score: float
     excerpt: str
+    match: Literal["semantic", "text", "both"]
+    page: int | None
+    similarity: float | None
+
+
+class SearchOut(BaseModel):
+    semantic: bool  # участвовал ли смысловой поиск (без ключа — только по словам)
+    hits: list[SearchHit]
+
+
+class IndexStatusOut(BaseModel):
+    configured: bool
+    model: str | None
+    counts: dict[str, int]
 
 
 class UrlIn(BaseModel):
@@ -130,6 +150,9 @@ def _item_out(db: DB, it: KnowledgeItem) -> KnowledgeItemOut:
         pages_with_text=it.pages_with_text,
         published_at=it.published_at,
         has_file=it.file_id is not None,
+        index_status=it.index_status,
+        index_error=it.index_error,
+        chunks_count=it.chunks_count,
         created_by=_ref(it.created_by),
         created_at=it.created_at,
         archived_at=it.archived_at,
@@ -187,20 +210,58 @@ def list_items(
     return Page(items=[_item_out(db, r) for r in rows], total=total, page=page, page_size=page_size)
 
 
-@router.get("/knowledge/search", response_model=list[SearchHit])
+@router.get("/knowledge/search", response_model=SearchOut)
 def search(
     db: DB,
     p: CurrentUser,
     q: str = Query(min_length=2, max_length=300),
     topic_id: UUID | None = None,
     layer: Layer | None = None,
+    mode: Literal["hybrid", "text"] = "hybrid",
     limit: int = Query(default=20, ge=1, le=50),
-) -> list[SearchHit]:
+) -> SearchOut:
+    """Гибридный поиск: по смыслу (эмбеддинги) + по словам. Каждый результат — с цитатой."""
     p.require(Perm.KNOWLEDGE_READ)
-    return [
-        SearchHit(item=_item_out(db, h.item), rank=h.rank, excerpt=h.excerpt)
-        for h in svc.search(db, q, topic_id=topic_id, layer=layer, limit=limit)
-    ]
+    hits, used = semantic.hybrid_search(
+        db, q, topic_id=topic_id, layer=layer, limit=limit, semantic=mode == "hybrid"
+    )
+    return SearchOut(
+        semantic=used,
+        hits=[
+            SearchHit(
+                item=_item_out(db, h.item),
+                score=h.score,
+                excerpt=h.excerpt,
+                match=h.match,  # type: ignore[arg-type]
+                page=h.page,
+                similarity=h.similarity,
+            )
+            for h in hits
+        ],
+    )
+
+
+@router.get("/knowledge/index-status", response_model=IndexStatusOut)
+def index_status(db: DB, p: CurrentUser) -> IndexStatusOut:
+    p.require(Perm.KNOWLEDGE_READ)
+    rows = db.execute(
+        select(KnowledgeItem.index_status, func.count())
+        .where(KnowledgeItem.archived_at.is_(None))
+        .group_by(KnowledgeItem.index_status)
+    ).all()
+    return IndexStatusOut(
+        configured=embeddings_configured(),
+        model=embedding_model_name() or None,
+        counts={k: v for k, v in rows},
+    )
+
+
+@router.post("/knowledge/reindex")
+def reindex(db: DB, p: CurrentUser, all: bool = False) -> dict:
+    """Проиндексировать материалы без индекса (или все — после смены модели)."""
+    p.require(Perm.KNOWLEDGE_MANAGE)
+    n = semantic.reindex(db, only_missing=not all)
+    return {"queued": n}
 
 
 @router.post("/knowledge/files", response_model=KnowledgeItemDetail, status_code=201)
@@ -229,7 +290,9 @@ async def upload_file(
         published_at=published_at,
         request=request,
     )
+    semantic.mark_pending(item)
     db.commit()
+    semantic.schedule_index(item)
     db.refresh(item)
     return _detail(db, item)
 
@@ -248,7 +311,9 @@ def add_url(body: UrlIn, request: Request, db: DB, p: CurrentUser) -> KnowledgeI
         published_at=body.published_at,
         request=request,
     )
+    semantic.mark_pending(item)
     db.commit()
+    semantic.schedule_index(item)
     db.refresh(item)
     return _detail(db, item)
 
@@ -267,7 +332,9 @@ def add_text(body: TextIn, request: Request, db: DB, p: CurrentUser) -> Knowledg
         published_at=body.published_at,
         request=request,
     )
+    semantic.mark_pending(item)
     db.commit()
+    semantic.schedule_index(item)
     db.refresh(item)
     return _detail(db, item)
 

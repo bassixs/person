@@ -48,7 +48,8 @@ OpenAPI: `/api/v1/openapi.json`, Swagger UI: `/api/v1/docs`.
 | `POST /topics/{id}/claim-flags` | `topic.approve` | `{claim_id, flag: refuted\|disputed\|stale\|cleared, reason}` — срочная пометка утверждения активной версии |
 | `GET /topics/{id}/claims/{cid}/history`, `GET /topics/{id}/history` | read | история утверждения по версиям и пометкам; журнал темы |
 | `GET /knowledge`, `GET /knowledge/{id}` | `knowledge.read` (editor, author, admin) | материалы с фильтрами `layer`, `topic_id`, `source_id`, `status`; карточка — с извлечённым текстом |
-| `GET /knowledge/search?q=` | `knowledge.read` | полнотекстовый поиск (русская морфология), каждый результат — материал, источник и цитата `excerpt` с разметкой ⟦…⟧ |
+| `GET /knowledge/search?q=&mode=hybrid\|text` | `knowledge.read` | гибридный поиск: по смыслу (эмбеддинги, pgvector) + по словам; `{semantic, hits[]}`, у результата `match` (semantic/text/both), `excerpt`, `page`, `similarity` |
+| `GET /knowledge/index-status`, `POST /knowledge/reindex?all=` | read / `knowledge.manage` | состояние смыслового индекса; проиндексировать материалы без индекса (или все — после смены модели) |
 | `POST /knowledge/files` | `knowledge.add` | multipart `file`, `title`, `layer`, `topic_ids`, `source_id`, `published_at`; до 20 МБ; формат по содержимому (415), дубликат (409) |
 | `POST /knowledge/urls` | `knowledge.add` | `{url, …}` — получение с защитой от SSRF: 422 `url_blocked`, 502 `fetch_failed` |
 | `POST /knowledge/texts` | `knowledge.add` | `{title, text, …}` |

@@ -115,6 +115,8 @@ def prompt(dossier: dict[str, Any], topic: dict[str, Any], materials: list[dict[
         )
         if m.get("published_at"):
             head += f" | опубликован {m['published_at']}"
+        if m.get("fragments"):
+            head += " | выбранные фрагменты, между ними […]"
         parts += [head + ">>>", m["text"], f"<<<конец {m['ref']}>>>"]
     parts.append(
         '\nВерни JSON: {"summary": str, "known_facts": [{"text": str, "refs": [{"material": "M1", "quote": str}]}], '

@@ -488,6 +488,9 @@ export interface KnowledgeItem {
   pages_with_text: number | null;
   published_at: string | null;
   has_file: boolean;
+  index_status: "none" | "pending" | "ok" | "failed" | "skipped";
+  index_error: string | null;
+  chunks_count: number;
   created_by: UserRef | null;
   created_at: string;
   archived_at: string | null;
@@ -499,8 +502,22 @@ export interface KnowledgeItemDetail extends KnowledgeItem {
 
 export interface SearchHit {
   item: KnowledgeItem;
-  rank: number;
+  score: number;
   excerpt: string;
+  match: "semantic" | "text" | "both";
+  page: number | null;
+  similarity: number | null;
+}
+
+export interface SearchOut {
+  semantic: boolean;
+  hits: SearchHit[];
+}
+
+export interface IndexStatus {
+  configured: boolean;
+  model: string | null;
+  counts: Record<string, number>;
 }
 
 export interface SourceOut {

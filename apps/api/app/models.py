@@ -22,11 +22,13 @@ from sqlalchemy import (
     String,
     Text,
     UniqueConstraint,
+    cast,
     func,
     text,
 )
 from sqlalchemy.dialects.postgresql import JSONB, TSVECTOR, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.types import UserDefinedType
 
 from app.db import Base
 
@@ -852,6 +854,12 @@ class KnowledgeItem(Base):
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
     archived_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    # Смысловой индекс (E-037): none | pending | ok | failed | skipped
+    index_status: Mapped[str] = mapped_column(String(16), default="none", nullable=False)
+    index_error: Mapped[str | None] = mapped_column(Text)
+    index_model: Mapped[str | None] = mapped_column(String(200))
+    indexed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    chunks_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
 
     created_by: Mapped[User | None] = relationship(lazy="joined", foreign_keys=[created_by_id])
     source: Mapped[Source | None] = relationship(lazy="joined")
@@ -909,3 +917,71 @@ class TopicUnderstandingRun(Base):
     )
     finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     started_by: Mapped[User | None] = relationship(lazy="joined", foreign_keys=[started_by_id])
+
+
+# ---------- итерация 4: смысловой поиск (E-037) ----------
+
+VECTOR_DIM = 1024  # должно совпадать с EMBEDDING_DIMENSIONS; смена — новая миграция
+
+
+class Vector(UserDefinedType):
+    """Тип pgvector без отдельной зависимости: список float ↔ текст '[x,y,…]'."""
+
+    cache_ok = True
+
+    def __init__(self, dim: int) -> None:
+        self.dim = dim
+
+    def get_col_spec(self, **kw: Any) -> str:
+        return f"vector({self.dim})"
+
+    def bind_expression(self, bindvalue: Any) -> Any:
+        # psycopg передаёт строку как text — явное приведение к vector.
+        return cast(bindvalue, self)
+
+    def bind_processor(self, dialect: Any) -> Any:
+        def process(value: Any) -> Any:
+            if value is None:
+                return None
+            return "[" + ",".join(f"{float(x):.7g}" for x in value) + "]"
+
+        return process
+
+    def result_processor(self, dialect: Any, coltype: Any) -> Any:
+        def process(value: Any) -> Any:
+            if value is None or isinstance(value, list):
+                return value
+            return [float(x) for x in str(value).strip("[]").split(",") if x]
+
+        return process
+
+
+class KnowledgeChunk(Base):
+    """Кусок текста материала с вектором смысла. Пересоздаётся при переиндексации."""
+
+    __tablename__ = "knowledge_chunks"
+    __table_args__ = (
+        UniqueConstraint("item_id", "position", name="uq_chunk_position"),
+        Index(
+            "ix_knowledge_chunks_embedding",
+            "embedding",
+            postgresql_using="hnsw",
+            postgresql_ops={"embedding": "vector_cosine_ops"},
+        ),
+    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=_uuid)
+    item_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("knowledge_items.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    position: Mapped[int] = mapped_column(Integer, nullable=False)
+    text: Mapped[str] = mapped_column(Text, nullable=False)
+    char_start: Mapped[int] = mapped_column(Integer, nullable=False)
+    page: Mapped[int | None] = mapped_column(Integer)
+    embedding: Mapped[list[float]] = mapped_column(Vector(VECTOR_DIM), nullable=False)
+    model: Mapped[str] = mapped_column(String(200), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )

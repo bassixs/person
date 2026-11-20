@@ -142,7 +142,7 @@ def test_search_returns_source_and_excerpt(client_for):
         "/api/v1/knowledge/texts",
         json={"title": "Про школу", "text": "Школа номер пять откроется после ремонта спортзала."},
     )
-    hits = api.get("/api/v1/knowledge/search", params={"q": "мосты лесная"}).json()
+    hits = api.get("/api/v1/knowledge/search", params={"q": "мосты лесная"}).json()["hits"]
     assert len(hits) == 1
     assert hits[0]["item"]["title"] == "Объявление о ремонте"
     assert "⟦" in hits[0]["excerpt"]  # морфология: «мосты» нашло «мосту»

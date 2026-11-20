@@ -3,7 +3,7 @@ import clsx from "clsx";
 import { Archive, Database, Download, ExternalLink, FileText, Globe, Link2, Plus, Search, Upload } from "lucide-react";
 import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { ApiError, get, post, upload } from "../../api/client";
-import type { KnowledgeItem, KnowledgeItemDetail, Page, SearchHit, SourceOut, TopicListItem } from "../../api/types";
+import type { IndexStatus, KnowledgeItem, KnowledgeItemDetail, Page, SearchOut, SourceOut, TopicListItem } from "../../api/types";
 import { useAuth } from "../../lib/auth";
 import { EXTRACTION_LABEL, fmtBytes, fmtDate } from "../../lib/format";
 import { EmptyState, ErrorState, Field, Modal, Spinner } from "../ui";
@@ -237,6 +237,10 @@ function ItemDialog({ id, onClose }: { id: string; onClose: () => void }) {
             </span>
           </div>
           <p className="text-muted">{it.extraction_note}</p>
+          <p className="text-xs text-muted">
+            Смысловой индекс:{" "}
+            {{ ok: `готов, ${it.chunks_count} фрагм.`, pending: "в очереди", failed: `ошибка — ${it.index_error ?? ""}`, skipped: "нет текста", none: "не подключён" }[it.index_status]}
+          </p>
           <dl className="grid gap-x-4 gap-y-1 text-xs sm:grid-cols-[140px_1fr]">
             {it.url && (
               <>
@@ -315,10 +319,19 @@ export function KnowledgeList({ topicId }: { topicId?: string }) {
   });
   const search = useQuery({
     queryKey: ["knowledge", "search", dq, topicId, layer],
-    queryFn: () => get<SearchHit[]>("/knowledge/search", { q: dq, topic_id: topicId, layer: layer || undefined }),
+    queryFn: () => get<SearchOut>("/knowledge/search", { q: dq, topic_id: topicId, layer: layer || undefined }),
     enabled: searching,
   });
-  const rows: { item: KnowledgeItem; excerpt?: string }[] = searching ? (search.data ?? []).map((h) => ({ item: h.item, excerpt: h.excerpt })) : (list.data?.items ?? []).map((item) => ({ item }));
+  const idx = useQuery({ queryKey: ["knowledge", "index-status"], queryFn: () => get<IndexStatus>("/knowledge/index-status"), enabled: !topicId });
+  const qc = useQueryClient();
+  const reindex = useMutation({
+    mutationFn: () => post<{ queued: number }>("/knowledge/reindex"),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["knowledge"] }),
+  });
+  const rows: { item: KnowledgeItem; excerpt?: string; match?: string; page?: number | null }[] = searching
+    ? (search.data?.hits ?? []).map((h) => ({ item: h.item, excerpt: h.excerpt, match: h.match, page: h.page }))
+    : (list.data?.items ?? []).map((item) => ({ item }));
+  const unindexed = idx.data ? (idx.data.counts.none ?? 0) + (idx.data.counts.failed ?? 0) : 0;
   const loading = searching ? search.isLoading : list.isLoading;
   const error = searching ? search.error : list.error;
 
@@ -344,6 +357,27 @@ export function KnowledgeList({ topicId }: { topicId?: string }) {
           </button>
         )}
       </div>
+      {idx.data && !topicId && (
+        <div className="mb-3 flex flex-wrap items-center gap-2 text-xs text-muted">
+          {idx.data.configured ? (
+            <>
+              <span className="chip border-success/40 text-success">поиск по смыслу и по словам</span>
+              <span className="font-mono">{idx.data.model}</span>
+              {(idx.data.counts.pending ?? 0) > 0 && <span>индексируется: {idx.data.counts.pending}</span>}
+              {unindexed > 0 && can("knowledge.manage") && (
+                <button className="btn-ghost btn-sm" onClick={() => reindex.mutate()} disabled={reindex.isPending}>
+                  Проиндексировать {unindexed}
+                </button>
+              )}
+            </>
+          ) : (
+            <span className="chip border-line-strong text-muted">смысловой поиск не подключён — ищем только по словам</span>
+          )}
+        </div>
+      )}
+      {searching && search.data && !search.data.semantic && idx.data?.configured && (
+        <p className="mb-3 text-xs text-warning">Смысловой поиск сейчас недоступен — показаны совпадения по словам.</p>
+      )}
       {loading && <Spinner />}
       {error ? <ErrorState error={error} /> : null}
       {!loading && rows.length === 0 && (
@@ -353,7 +387,7 @@ export function KnowledgeList({ topicId }: { topicId?: string }) {
       )}
       {rows.length > 0 && (
         <ul className="space-y-2">
-          {rows.map(({ item, excerpt }) => (
+          {rows.map(({ item, excerpt, match, page }) => (
             <li key={item.id}>
               <button className="panel w-full p-4 text-left transition-colors hover:border-accent/40" onClick={() => setOpen(item.id)}>
                 <div className="flex flex-wrap items-center gap-2">
@@ -361,6 +395,8 @@ export function KnowledgeList({ topicId }: { topicId?: string }) {
                   <span className="font-medium text-fg">{item.title}</span>
                   <ExtractionChip status={item.extraction_status} />
                   {item.layer === "topic" && <span className="chip border-line text-muted">тема</span>}
+                  {match && <span className="chip border-line text-muted">{match === "both" ? "по смыслу и словам" : match === "semantic" ? "по смыслу" : "по словам"}</span>}
+                  {page && <span className="font-mono text-[11px] text-muted">стр. {page}</span>}
                 </div>
                 {excerpt ? (
                   <Excerpt text={excerpt} />

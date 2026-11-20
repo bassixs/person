@@ -2,7 +2,8 @@
 # Запуск: cp .env.example .env && docker compose up --build
 services:
   postgres:
-    image: postgres:16-alpine
+    build: { context: ., dockerfile: infra/docker/postgres.Dockerfile }
+    image: lichnosti-postgres:16-pgvector
     environment:
       POSTGRES_USER: lichnosti
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-lichnosti}

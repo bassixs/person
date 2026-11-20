@@ -6,7 +6,7 @@
 ## Схема
 
 ```
-интернет ──443/80──▶ Caddy (HTTPS, Let's Encrypt) ──▶ web (nginx: SPA + /api) ──▶ api (FastAPI) ──▶ postgres
+интернет ──443/80──▶ Caddy (HTTPS, Let's Encrypt) ──▶ web (nginx: SPA + /api) ──▶ api (FastAPI) ──▶ postgres (16-alpine + pgvector, свой образ)
 ```
 
 - Наружу открыт только Caddy. API, nginx и PostgreSQL — во внутренней сети Docker.

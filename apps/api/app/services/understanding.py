@@ -26,6 +26,7 @@ from app.db import session_factory
 from app.deps import Principal
 from app.errors import ApiError, not_found
 from app.models import KnowledgeItem, KnowledgeItemTopic, Topic, TopicUnderstandingRun, TopicVersion
+from app.services import semantic
 from app.services import topics as tsvc
 from app.topic_dossier import Claim, ClaimSource, dossier_hash
 
@@ -164,18 +165,27 @@ def execute(run_id: UUID) -> None:
         try:
             if version.content_hash != run.content_hash:
                 raise ApiError(409, "content_changed", "Досье изменилось до начала разбора")
+            d = version.dossier
+            query = " ".join(
+                [topic.title, d.get("summary", ""), *d.get("residents_questions", [])[:10]]
+            )
+            texts, fragmented = semantic.select_context(
+                db, list(by_ref.values()), query, skill.MATERIALS_BUDGET
+            )
             mats = skill.budgeted(
                 [
                     {
                         "ref": ref,
                         "title": it.title,
                         "format": it.format,
-                        "text": it.text or f"(текст не извлечён: {it.extraction_note})",
+                        "text": texts.get(it.id) or f"(текст не извлечён: {it.extraction_note})",
                         "published_at": str(it.published_at) if it.published_at else None,
                     }
                     for ref, it in by_ref.items()
                 ]
             )
+            for m, it in zip(mats, by_ref.values(), strict=True):
+                m["fragments"] = it.id in fragmented
             result, model = run_skill(
                 SkillCall(
                     skill=skill.SKILL,
@@ -219,7 +229,13 @@ def execute(run_id: UUID) -> None:
             "understood": result.understood,
             "understood_reason": result.understood_reason,
             "sources": [
-                {"ref": ref, "item_id": str(it.id), "title": it.title, "truncated": m["truncated"]}
+                {
+                    "ref": ref,
+                    "item_id": str(it.id),
+                    "title": it.title,
+                    "truncated": m["truncated"],
+                    "fragments": m["fragments"],
+                }
                 for (ref, it), m in zip(by_ref.items(), mats, strict=True)
             ],
         }
